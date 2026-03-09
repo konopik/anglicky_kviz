@@ -95,24 +95,26 @@ const CanvasKeyboard = ({
     const width = containerWidth;
     const height = containerHeight;
 
-    // Layout parameters
-    const padding = 8;
-    const keyMargin = 6;
+    // Responsive layout parameters - reduce margins on mobile
+    const isMobile = width < 600;
+    const padding = isMobile ? 2 : 8;
+    const keyMargin = isMobile ? 2 : 6;
     const totalRows = qwertyRows.length;
 
-    // Responsive key sizing
+    // Key sizing based on longest row (maintains standard keyboard offset/layout)
     const maxKeysInRow = Math.max(...qwertyRows.map(row => row.length));
     const availableWidth = width - padding * 2 - keyMargin * (maxKeysInRow - 1);
     const keyWidth = availableWidth / maxKeysInRow;
     const keyHeight = (height - padding * 2 - keyMargin * (totalRows - 1)) / totalRows;
+    const keyStep = keyWidth + keyMargin;
+    const rowOffsets = [0, keyStep / 2, keyStep];
 
     const positions = [];
     let keyId = 0;
 
     for (let rowIdx = 0; rowIdx < qwertyRows.length; rowIdx++) {
       const row = qwertyRows[rowIdx];
-      const rowWidth = row.length * keyWidth + (row.length - 1) * keyMargin;
-      const rowStartX = (width - rowWidth) / 2; // Center each row
+      const rowStartX = padding + (rowOffsets[rowIdx] ?? 0);
 
       for (let colIdx = 0; colIdx < row.length; colIdx++) {
         const letter = row[colIdx];
@@ -280,7 +282,7 @@ const CanvasKeyboard = ({
     <div
       ref={containerRef}
       className={`w-full bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 ${className}`}
-      style={{ height: '200px' }}
+      style={{ height: 'clamp(200px, 42vw, 240px)' }}
     >
       <canvas
         ref={canvasRef}

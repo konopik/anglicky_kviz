@@ -436,7 +436,7 @@ export default function App() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 transition-colors duration-300 mb-8">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 sm:p-4 md:p-8 transition-colors duration-300 mb-8">
           <CanvasKeyboard
             qwertyRows={QWERTY_ROWS}
             typedLetters={typedLetters}
