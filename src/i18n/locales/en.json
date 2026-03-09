@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "English Irregular Verbs",
+    "startButton": "Start Game",
+    "playAgainButton": "Play Again",
+    "finishedTitle": "Round Finished!",
+    "finishedMessage": "All verbs were completed. Nice work."
+  },
+  "instructions": {
+    "typeInstruction": "⌨️ Type the past form using the keyboard.",
+    "perfectStar": "⭐ Yellow star = perfect word (no mistakes)",
+    "incorrectDot": "⚪ Gray dot = mistakes made, word repeats",
+    "hintDot": "🔴 Red dot = hint used, word repeats",
+    "hintMechanic": "❌ Wrong letters turn red. After 3 mistakes, a hint appears (red dot recorded)."
+  },
+  "gameplay": {
+    "typePrompt": "Type the past form of:",
+    "hintMessage": "💡 The correct letter is highlighted. Click it to continue.",
+    "words": "Words:",
+    "points": "Points:",
+    "symbols": "Symbols:",
+    "totalPoints": "Total Points",
+    "emptySequence": "No badges collected yet"
+  },
+  "symbols": {
+    "sequence": "Acquired Badges",
+    "odznak": "badge"
+  }
+}

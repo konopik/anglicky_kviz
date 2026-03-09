@@ -1,0 +1,29 @@
+{
+  "app": {
+    "title": "Anglická nepravidelná slovesa",
+    "startButton": "Začít hru",
+    "playAgainButton": "Hrát znovu",
+    "finishedTitle": "Kolo ukončeno!",
+    "finishedMessage": "Máš hotovo — všechna slovesa jsou splněná. Skvělá práce!"
+  },
+  "instructions": {
+    "typeInstruction": "⌨️ Napiš minulý tvar slovesa pomocí klávesnice.",
+    "perfectStar": "⭐ Žlutá hvězda = bezchybná odpověď",
+    "incorrectDot": "⚪ Šedá tečka = udělaná chyba, slovo se později zopakuje",
+    "hintDot": "🔴 Červená tečka = použitá nápověda, slovo se později zopakuje",
+    "hintMechanic": "❌ Chybně zadaná písmena se označí červeně. Po 3 chybách se zobrazí nápověda (a započítá se červený odznak)."
+  },
+  "gameplay": {
+    "typePrompt": "Napiš minulý tvar slovesa:",
+    "hintMessage": "💡 Správné písmeno je zvýrazněné. Klikni na něj a pokračuj.",
+    "words": "Zbývá:",
+    "points": "Body:",
+    "symbols": "Odznaky:",
+    "totalPoints": "Celkový počet bodů",
+    "emptySequence": "Zatím nemáš žádné odznaky"
+  },
+  "symbols": {
+    "sequence": "Získané odznaky",
+    "odznak": "odznak"
+  }
+}
