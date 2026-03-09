@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Star, CheckCircle, Play, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import CanvasKeyboard from './components/CanvasKeyboard';
 
 const VERBS = [
   { infinitive: 'run', past: 'ran' },
@@ -436,46 +437,16 @@ export default function App() {
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8 transition-colors duration-300 mb-8">
-          <div className="space-y-3">
-            {QWERTY_ROWS.map((row, rowIdx) => (
-              <div key={rowIdx} className="flex justify-center gap-1.5 md:gap-2">
-                {row.map(letter => {
-                  const isTyped = typedLetters.includes(letter);
-                  const wrongOnCurrentPos = mistakesOnPosition > 0 && currentPosition < expectedAnswer.length;
-                  const isWrong = wrongLetters.has(letter) && wrongOnCurrentPos;
-                  const isExpected = false;
-                  const isHinted = hintedLetter === letter;
-
-                  return (
-                    <button
-                      key={letter}
-                      onClick={() => handleLetterClick(letter)}
-                      disabled={isWordComplete}
-                      className={`
-                        h-10 md:h-12 px-3 md:px-4 rounded-lg font-bold text-sm md:text-base transition-all
-                        border-2 outline-none cursor-pointer
-                        ${
-                          isWordComplete
-                            ? 'opacity-50 cursor-not-allowed'
-                            : isWrong
-                            ? 'bg-red-100 dark:bg-red-900/60 border-red-400 text-red-700 dark:text-red-300'
-                            : isTyped
-                            ? 'bg-slate-200 dark:bg-slate-700 border-slate-400 text-slate-500 dark:text-slate-400'
-                            : isHinted
-                            ? 'bg-yellow-300 dark:bg-yellow-600/80 border-yellow-500 text-yellow-900 dark:text-yellow-50 font-bold shadow-lg'
-                            : isExpected
-                            ? 'bg-blue-100 dark:bg-blue-900/50 border-blue-400 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/70'
-                            : 'bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-600'
-                        }
-                      `}
-                    >
-                      {letter}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <CanvasKeyboard
+            qwertyRows={QWERTY_ROWS}
+            typedLetters={typedLetters}
+            wrongLetters={wrongLetters}
+            hintedLetter={hintedLetter}
+            isWordComplete={isWordComplete}
+            onLetterClick={handleLetterClick}
+            expectedLetter={expectedAnswer[currentPosition]}
+            className="p-0 shadow-none border-none"
+          />
         </div>
 
 
