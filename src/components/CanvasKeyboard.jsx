@@ -13,7 +13,6 @@ const CanvasKeyboard = ({
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const keyPositionsRef = useRef([]);
-  const [keyPositions, setKeyPositions] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Detect dark mode
@@ -204,14 +203,29 @@ const CanvasKeyboard = ({
     }
   };
 
-  // Handle canvas click
-  const handleCanvasClick = (e) => {
+  const getInteractionPoint = (event) => {
+    if ('clientX' in event && 'clientY' in event) {
+      return { clientX: event.clientX, clientY: event.clientY };
+    }
+
+    const touch = event.touches?.[0] ?? event.changedTouches?.[0];
+    if (touch) {
+      return { clientX: touch.clientX, clientY: touch.clientY };
+    }
+
+    return null;
+  };
+
+  // Handle canvas press/tap
+  const handleCanvasPress = (event) => {
     if (isWordComplete || keyPositionsRef.current.length === 0) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    const point = getInteractionPoint(event);
+    if (!point) return;
+
     const rect = canvasRef.current.getBoundingClientRect();
-    const clickX = (e.clientX - rect.left) * dpr;
-    const clickY = (e.clientY - rect.top) * dpr;
+    const clickX = point.clientX - rect.left;
+    const clickY = point.clientY - rect.top;
 
     const letter = getLetterFromClick(clickX, clickY, keyPositionsRef.current, expectedLetter);
     if (letter) {
@@ -236,7 +250,6 @@ const CanvasKeyboard = ({
     // Calculate key positions
     const positions = calculateKeyPositions(containerWidth, containerHeight);
     keyPositionsRef.current = positions;
-    setKeyPositions(positions);
 
     // Draw keyboard
     drawKeyboard(canvas, positions, containerWidth, containerHeight);
@@ -255,7 +268,6 @@ const CanvasKeyboard = ({
 
         const positions = calculateKeyPositions(containerWidth, containerHeight);
         keyPositionsRef.current = positions;
-        setKeyPositions(positions);
         drawKeyboard(canvas, positions, containerWidth, containerHeight);
       }
     };
@@ -272,12 +284,13 @@ const CanvasKeyboard = ({
     >
       <canvas
         ref={canvasRef}
-        onClick={handleCanvasClick}
+        onPointerDown={handleCanvasPress}
         style={{ 
           display: 'block', 
           width: '100%', 
           height: '100%',
           cursor: isWordComplete ? 'not-allowed' : 'pointer',
+          touchAction: 'manipulation',
         }}
       />
     </div>
