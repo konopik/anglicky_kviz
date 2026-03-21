@@ -1,7 +1,8 @@
 {
   "app": {
-    "title": "Anglická nepravidelná slovesa",
+    "title": "Slovní kvíz",
     "startButton": "Začít hru",
+    "selectSetFirst": "Nejdřív vyber test",
     "playAgainButton": "Hrát znovu",
     "finishedTitle": "Kolo ukončeno!",
     "finishedMessage": "Máš hotovo — všechna slovesa jsou splněná. Skvělá práce!"
@@ -14,13 +15,35 @@
     "hintMechanic": "❌ Chybně zadaná písmena se označí červeně. Po 3 chybách se zobrazí nápověda (a započítá se červený odznak)."
   },
   "gameplay": {
-    "typePrompt": "Napiš minulý tvar slovesa:",
+    "typePromptPast": "Napiš minulý tvar slovesa:",
+    "typePromptGerman": "Napiš německé slovo pro:",
     "hintMessage": "💡 Správné písmeno je zvýrazněné. Klikni na něj a pokračuj.",
     "words": "Zbývá:",
     "points": "Body:",
     "symbols": "Odznaky:",
     "totalPoints": "Celkový počet bodů",
     "emptySequence": "Zatím nemáš žádné odznaky"
+  },
+  "testSets": {
+    "selectLabel": "Vyber si test",
+    "selectedLabel": "Vybraný test",
+    "currentLabel": "Aktuální test",
+    "englishQuiz1": {
+      "title": "Angličtina – test 1",
+      "description": "Základní nepravidelná slovesa: run, eat , go..."
+    },
+    "englishQuiz2": {
+      "title": "Angličtina – test 2",
+      "description": "Další nepravidelná slovesa: have, buy, fly..."
+    },
+    "englishQuiz3": {
+      "title": "Angličtina – test 3",
+      "description": "Smíšená slovesa včetně víceslovných tvarů jako wake up..."
+    },
+    "germanAdjectives1": {
+      "title": "Němčina – přídavná jména",
+      "description": "Uvidíš český význam a napíšeš německé přídavné jméno"
+    }
   },
   "symbols": {
     "sequence": "Získané odznaky",

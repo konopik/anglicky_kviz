@@ -1,7 +1,8 @@
 {
   "app": {
-    "title": "English Irregular Verbs",
+    "title": "Vocabulary Quiz",
     "startButton": "Start Game",
+    "selectSetFirst": "Select a Test Set First",
     "playAgainButton": "Play Again",
     "finishedTitle": "Round Finished!",
     "finishedMessage": "All verbs were completed. Nice work."
@@ -14,13 +15,35 @@
     "hintMechanic": "❌ Wrong letters turn red. After 3 mistakes, a hint appears (red dot recorded)."
   },
   "gameplay": {
-    "typePrompt": "Type the past form of:",
+    "typePromptPast": "Type the past form of:",
+    "typePromptGerman": "Type the German word for:",
     "hintMessage": "💡 The correct letter is highlighted. Click it to continue.",
     "words": "Words:",
     "points": "Points:",
     "symbols": "Symbols:",
     "totalPoints": "Total Points",
     "emptySequence": "No badges collected yet"
+  },
+  "testSets": {
+    "selectLabel": "Choose a test set",
+    "selectedLabel": "Selected set",
+    "currentLabel": "Current set",
+    "englishQuiz1": {
+      "title": "English Quiz 1",
+      "description": "Basic irregular verbs: run → ran, eat → ate, go → went"
+    },
+    "englishQuiz2": {
+      "title": "English Quiz 2",
+      "description": "More irregular verbs: have → had, buy → bought, fly → flew"
+    },
+    "englishQuiz3": {
+      "title": "English Quiz 3",
+      "description": "Mixed verbs including phrasal forms like wake up → woke up"
+    },
+    "germanAdjectives1": {
+      "title": "German Adjectives",
+      "description": "See the Czech meaning and type the German adjective"
+    }
   },
   "symbols": {
     "sequence": "Acquired Badges",

@@ -2,35 +2,63 @@ import React, { useState, useRef } from 'react';
 import { Star, CheckCircle, Play, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CanvasKeyboard from './components/CanvasKeyboard';
-
-const VERBS = [
-  { infinitive: 'run', past: 'ran' },
-  { infinitive: 'swim', past: 'swam' },
-  { infinitive: 'take', past: 'took' },
-  { infinitive: 'write', past: 'wrote' },
-  { infinitive: 'read', past: 'read' },
-  { infinitive: 'make', past: 'made' },
-  { infinitive: 'give', past: 'gave' },
-  { infinitive: 'drink', past: 'drank' },
-  { infinitive: 'go', past: 'went' },
-  { infinitive: 'see', past: 'saw' },
-  { infinitive: 'eat', past: 'ate' },
-  { infinitive: 'ring', past: 'rang' }
-];
-
-const QWERTY_ROWS = [
-  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-];
+import { TEST_SETS, getTestSetById } from './data/testSets';
 
 const MISTAKES_FOR_HINT = 3;
+
+const normalizeAnswerText = (text) => Array.from(text).map((character) => {
+  if (character === 'ß') {
+    return 'ß';
+  }
+
+  return character.toLocaleUpperCase('de-DE');
+}).join('');
+
+const createInitialWordState = (entry) => {
+  if (!entry) {
+    return {
+      typedLetters: [],
+      positionStatuses: [],
+      currentPosition: 0,
+    };
+  }
+
+  const expectedAnswer = normalizeAnswerText(entry.answer);
+  const typedLetters = Array(expectedAnswer.length).fill('');
+  const positionStatuses = Array(expectedAnswer.length).fill(null);
+  let currentPosition = 0;
+
+  while (currentPosition < expectedAnswer.length && expectedAnswer[currentPosition] === ' ') {
+    typedLetters[currentPosition] = ' ';
+    positionStatuses[currentPosition] = 'space';
+    currentPosition += 1;
+  }
+
+  return {
+    typedLetters,
+    positionStatuses,
+    currentPosition,
+  };
+};
+
+const advancePastSpaces = (expectedAnswer, typedLetters, positionStatuses, startPosition) => {
+  let nextPosition = startPosition;
+
+  while (nextPosition < expectedAnswer.length && expectedAnswer[nextPosition] === ' ') {
+    typedLetters[nextPosition] = ' ';
+    positionStatuses[nextPosition] = 'space';
+    nextPosition += 1;
+  }
+
+  return nextPosition;
+};
 
 export default function App() {
   const { t, i18n } = useTranslation();
   const [gameState, setGameState] = useState('start');
+  const [selectedTestSetId, setSelectedTestSetId] = useState(null);
   const [queue, setQueue] = useState([]);
-  const [currentVerb, setCurrentVerb] = useState(null);
+  const [currentEntry, setCurrentEntry] = useState(null);
   const [isCurrentWordRetry, setIsCurrentWordRetry] = useState(false);
   const [scoreSequence, setScoreSequence] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
@@ -45,10 +73,11 @@ export default function App() {
   const [positionStatuses, setPositionStatuses] = useState([]);
 
   const audioContextRef = useRef(null);
+  const selectedTestSet = getTestSetById(selectedTestSetId);
 
-  const initializeQueue = () => {
+  const initializeQueue = (entries) => {
     // Fisher-Yates shuffle
-    const shuffled = [...VERBS].map(verb => ({ verb, isRetry: false }));
+    const shuffled = [...entries].map(entry => ({ entry, isRetry: false }));
     for (let i = shuffled.length - 1; i > 0; i--) {
       // eslint-disable-next-line react-hooks/purity
       const j = Math.floor(Math.random() * (i + 1));
@@ -58,25 +87,28 @@ export default function App() {
   };
 
   const startGame = () => {
-    const initialQueue = initializeQueue();
+    if (!selectedTestSet) return;
+
+    const initialQueue = initializeQueue(selectedTestSet.entries);
     setQueue(initialQueue);
-    setCurrentVerb(initialQueue[0].verb);
+    setCurrentEntry(initialQueue[0].entry);
     setIsCurrentWordRetry(initialQueue[0].isRetry);
     setGameState('playing');
     setScoreSequence([]);
     setTotalScore(0);
-    resetWordState();
+    resetWordState(initialQueue[0].entry);
   };
 
-  const resetWordState = () => {
-    setTypedLetters([]);
-    setCurrentPosition(0);
+  const resetWordState = (entry) => {
+    const initialWordState = createInitialWordState(entry);
+    setTypedLetters(initialWordState.typedLetters);
+    setCurrentPosition(initialWordState.currentPosition);
     setMistakesOnPosition(0);
     setWrongLetters(new Set());
     setHintedLetter(null);
     setCurrentWordIsPerfect(true);
     setCurrentWordUsedHint(false);
-    setPositionStatuses([]);
+    setPositionStatuses(initialWordState.positionStatuses);
   };
 
   const playErrorSound = () => {
@@ -106,29 +138,34 @@ export default function App() {
   };
 
   const handleLetterClick = (letter) => {
-    if (!currentVerb) return;
+    if (!currentEntry) return;
     
-    const expectedAnswer = currentVerb.past.toUpperCase();
+    const expectedAnswer = normalizeAnswerText(currentEntry.answer);
     const expectedLetter = expectedAnswer[currentPosition];
     const isCorrect = letter === expectedLetter;
 
     if (isCorrect) {
       const usedHintThisTurn = hintedLetter !== null;
-      const newTyped = [...typedLetters, letter];
-      setTypedLetters(newTyped);
+      const newTyped = [...typedLetters];
+      newTyped[currentPosition] = letter;
       
       // Determine position status: perfect, mistake, or hint
       let posStatus = 'perfect';
-      if (currentWordUsedHint || usedHintThisTurn) {
+      if (usedHintThisTurn) {
         posStatus = 'hint';
       } else if (mistakesOnPosition > 0 || wrongLetters.size > 0) {
         posStatus = 'mistake';
       }
       
-      const newStatuses = [...positionStatuses, posStatus];
+      const newStatuses = [...positionStatuses];
+      newStatuses[currentPosition] = posStatus;
+
+      const nextPosition = advancePastSpaces(expectedAnswer, newTyped, newStatuses, currentPosition + 1);
+
+      setTypedLetters(newTyped);
       setPositionStatuses(newStatuses);
       
-      setCurrentPosition(currentPosition + 1);
+      setCurrentPosition(nextPosition);
       setMistakesOnPosition(0);
       setWrongLetters(new Set());
       setHintedLetter(null);
@@ -137,7 +174,7 @@ export default function App() {
         setCurrentWordUsedHint(true);
       }
 
-      if (newTyped.length === expectedAnswer.length) {
+      if (nextPosition >= expectedAnswer.length) {
         completeWord(usedHintThisTurn);
       }
     } else {
@@ -159,23 +196,28 @@ export default function App() {
   };
 
   const handleHintedLetterClick = () => {
-    if (hintedLetter === null || !currentVerb) return;
+    if (hintedLetter === null || !currentEntry) return;
 
-    const expectedAnswer = currentVerb.past.toUpperCase();
-    const newTyped = [...typedLetters, hintedLetter];
-    setTypedLetters(newTyped);
+    const expectedAnswer = normalizeAnswerText(currentEntry.answer);
+    const newTyped = [...typedLetters];
+    newTyped[currentPosition] = hintedLetter;
     
-    const newStatuses = [...positionStatuses, 'hint'];
+    const newStatuses = [...positionStatuses];
+    newStatuses[currentPosition] = 'hint';
+
+    const nextPosition = advancePastSpaces(expectedAnswer, newTyped, newStatuses, currentPosition + 1);
+
+    setTypedLetters(newTyped);
     setPositionStatuses(newStatuses);
     
-    setCurrentPosition(currentPosition + 1);
+    setCurrentPosition(nextPosition);
     setMistakesOnPosition(0);
     setWrongLetters(new Set());
     setHintedLetter(null);
     setCurrentWordIsPerfect(false);
     setCurrentWordUsedHint(true);
 
-    if (newTyped.length === expectedAnswer.length) {
+    if (nextPosition >= expectedAnswer.length) {
       completeWord(true);
     }
   };
@@ -214,16 +256,16 @@ export default function App() {
     setTotalScore(prev => prev + points);
 
     setTimeout(() => {
-      nextQuestion(wasPerfect ? null : currentVerb);
+      nextQuestion(wasPerfect ? null : currentEntry);
     }, 600);
   };
 
-  const nextQuestion = (wordToRepeat = null) => {
+  const nextQuestion = (entryToRepeat = null) => {
     let newQueue = queue.slice(1);
 
-    if (wordToRepeat) {
+    if (entryToRepeat) {
       // Create a retry entry for the word to repeat
-      const retryEntry = { verb: wordToRepeat, isRetry: true };
+      const retryEntry = { entry: entryToRepeat, isRetry: true };
       
       // Insert word after at least 2 words, or randomly if less than 2 words remain
       const minDelay = 2;
@@ -238,15 +280,15 @@ export default function App() {
 
     if (newQueue.length === 0) {
       setQueue([]);
-      setCurrentVerb(null);
+      setCurrentEntry(null);
       setGameState('finished');
       return;
     }
 
     setQueue(newQueue);
-    setCurrentVerb(newQueue[0].verb);
+    setCurrentEntry(newQueue[0].entry);
     setIsCurrentWordRetry(newQueue[0].isRetry);
-    resetWordState();
+    resetWordState(newQueue[0].entry);
   };
 
 
@@ -254,7 +296,7 @@ export default function App() {
   if (gameState === 'start') {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300">
-        <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center space-y-6 border border-slate-100 dark:border-slate-700">
+        <div className="max-w-3xl w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center space-y-6 border border-slate-100 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
             <div className="bg-yellow-100 dark:bg-yellow-900/40 w-24 h-24 rounded-full flex items-center justify-center">
               <Star className="w-12 h-12 text-yellow-500 dark:text-yellow-400 fill-current" />
@@ -283,6 +325,44 @@ export default function App() {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t('app.title')}</h1>
+          <div className="text-left space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                {t('testSets.selectLabel')}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {TEST_SETS.map((testSet) => {
+                  const isSelected = selectedTestSetId === testSet.id;
+
+                  return (
+                    <button
+                      key={testSet.id}
+                      type="button"
+                      onClick={() => setSelectedTestSetId(testSet.id)}
+                      className={`w-full rounded-xl border p-4 text-left transition-all ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-200 dark:ring-blue-800'
+                          : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700/30 hover:border-blue-300 dark:hover:border-blue-500'
+                      }`}
+                    >
+                      <p className="font-bold text-slate-900 dark:text-white">{t(testSet.titleKey)}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{t(testSet.descriptionKey)}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {selectedTestSet && (
+              <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                  {t('testSets.selectedLabel')}
+                </p>
+                <p className="text-lg font-bold text-blue-700 dark:text-blue-300 mt-1">{t(selectedTestSet.titleKey)}</p>
+                <p className="text-sm text-blue-600 dark:text-blue-200 mt-1">{t(selectedTestSet.descriptionKey)}</p>
+              </div>
+            )}
+          </div>
           <div className="text-slate-600 dark:text-slate-300 leading-relaxed space-y-3 text-left bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl">
             <p>{t('instructions.typeInstruction')}</p>
             <p>{t('instructions.perfectStar')}</p>
@@ -292,10 +372,11 @@ export default function App() {
           </div>
           <button 
             onClick={startGame}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-lg shadow-md border-none outline-none"
+            disabled={!selectedTestSet}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-lg shadow-md border-none outline-none disabled:cursor-not-allowed disabled:active:scale-100"
           >
             <Play className="w-6 h-6 fill-current" />
-            {t('app.startButton')}
+            {selectedTestSet ? t('app.startButton') : t('app.selectSetFirst')}
           </button>
         </div>
       </div>
@@ -310,6 +391,11 @@ export default function App() {
             <CheckCircle className="w-14 h-14 text-yellow-600 dark:text-yellow-400" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t('app.finishedTitle')}</h1>
+          {selectedTestSet && (
+            <p className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+              {t(selectedTestSet.titleKey)}
+            </p>
+          )}
           <p className="text-slate-600 dark:text-slate-300">{t('app.finishedMessage')}</p>
           
           <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 border border-blue-200 dark:border-blue-700 mt-6 mb-4">
@@ -350,15 +436,19 @@ export default function App() {
     );
   }
 
-  if (!currentVerb) return null;
+  if (!currentEntry || !selectedTestSet) return null;
 
-  const expectedAnswer = currentVerb.past.toUpperCase();
-  const isWordComplete = typedLetters.length === expectedAnswer.length;
+  const expectedAnswer = normalizeAnswerText(currentEntry.answer);
+  const isWordComplete = currentPosition >= expectedAnswer.length;
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300">
       <header className="bg-white dark:bg-slate-800 px-4 md:px-6 py-4 shadow-sm border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 z-10 transition-colors duration-300">
         <div className="flex items-center gap-6">
+          <div className="hidden md:flex flex-col">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('testSets.currentLabel')}</span>
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t(selectedTestSet.titleKey)}</span>
+          </div>
           <div className="flex gap-2 items-center">
             <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.words')}</span>
             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{queue.length}</span>
@@ -388,12 +478,16 @@ export default function App() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 md:p-10 mb-8 transition-colors duration-300 text-center">
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t('gameplay.typePrompt')}</p>
-          <h2 className="text-5xl md:text-6xl font-bold text-blue-600 dark:text-blue-400 mb-6">{currentVerb.infinitive}</h2>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t(selectedTestSet.promptLabelKey)}</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-6 break-words">{currentEntry.prompt}</h2>
           
           <div className="flex justify-center gap-2 md:gap-3 mb-8 flex-wrap">
             {expectedAnswer.split('').map((letter, idx) => {
-              const isTyped = idx < typedLetters.length;
+              if (letter === ' ') {
+                return <div key={`space-${idx}`} className="w-4 md:w-6 h-12 md:h-14" aria-hidden="true" />;
+              }
+
+              const isTyped = Boolean(typedLetters[idx]);
               const isHinted = idx === currentPosition && hintedLetter;
               const wrongOnThis = idx === currentPosition && mistakesOnPosition > 0 && !isTyped;
               
@@ -438,13 +532,13 @@ export default function App() {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 sm:p-4 md:p-8 transition-colors duration-300 mb-8">
           <CanvasKeyboard
-            qwertyRows={QWERTY_ROWS}
+            qwertyRows={selectedTestSet.keyboardRows}
             typedLetters={typedLetters}
             wrongLetters={wrongLetters}
             hintedLetter={hintedLetter}
             isWordComplete={isWordComplete}
             onLetterClick={handleLetterClick}
-            expectedLetter={expectedAnswer[currentPosition]}
+            expectedLetter={isWordComplete ? null : expectedAnswer[currentPosition]}
             className="p-0 shadow-none border-none"
           />
         </div>

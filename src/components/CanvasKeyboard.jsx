@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
 const CanvasKeyboard = ({
   qwertyRows,
@@ -89,7 +89,7 @@ const CanvasKeyboard = ({
   };
 
   // Calculate keyboard layout and key positions
-  const calculateKeyPositions = (containerWidth, containerHeight) => {
+  const calculateKeyPositions = useCallback((containerWidth, containerHeight) => {
     if (!containerWidth || !containerHeight) return [];
 
     const width = containerWidth;
@@ -107,14 +107,14 @@ const CanvasKeyboard = ({
     const keyWidth = availableWidth / maxKeysInRow;
     const keyHeight = (height - padding * 2 - keyMargin * (totalRows - 1)) / totalRows;
     const keyStep = keyWidth + keyMargin;
-    const rowOffsets = [0, keyStep / 2, keyStep];
 
     const positions = [];
     let keyId = 0;
 
     for (let rowIdx = 0; rowIdx < qwertyRows.length; rowIdx++) {
       const row = qwertyRows[rowIdx];
-      const rowStartX = padding + (rowOffsets[rowIdx] ?? 0);
+      const rowOffset = ((maxKeysInRow - row.length) * keyStep) / 2;
+      const rowStartX = padding + rowOffset;
 
       for (let colIdx = 0; colIdx < row.length; colIdx++) {
         const letter = row[colIdx];
@@ -135,10 +135,10 @@ const CanvasKeyboard = ({
     }
 
     return positions;
-  };
+  }, [qwertyRows]);
 
   // Draw the keyboard on canvas
-  const drawKeyboard = (canvas, positions, containerWidth, containerHeight) => {
+  const drawKeyboard = useCallback((canvas, positions, containerWidth, containerHeight) => {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -203,7 +203,7 @@ const CanvasKeyboard = ({
 
       ctx.globalAlpha = 1;
     }
-  };
+  }, [hintedLetter, isDarkMode, isWordComplete, typedLetters, wrongLetters]);
 
   const getInteractionPoint = (event) => {
     if ('clientX' in event && 'clientY' in event) {
@@ -255,7 +255,7 @@ const CanvasKeyboard = ({
 
     // Draw keyboard
     drawKeyboard(canvas, positions, containerWidth, containerHeight);
-  }, [typedLetters, wrongLetters, hintedLetter, isWordComplete, expectedLetter, qwertyRows, isDarkMode]);
+  }, [calculateKeyPositions, drawKeyboard]);
 
   // Handle window resize
   useEffect(() => {
@@ -276,7 +276,7 @@ const CanvasKeyboard = ({
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [typedLetters, wrongLetters, hintedLetter, isWordComplete, expectedLetter, qwertyRows, isDarkMode]);
+  }, [calculateKeyPositions, drawKeyboard]);
 
   return (
     <div
