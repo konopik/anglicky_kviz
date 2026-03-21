@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Star, CheckCircle, Play, RotateCcw } from 'lucide-react';
+import { Star, CheckCircle, RotateCcw, House, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CanvasKeyboard from './components/CanvasKeyboard';
 import { TEST_SETS, getTestSetById } from './data/testSets';
@@ -71,8 +71,10 @@ export default function App() {
   const [currentWordIsPerfect, setCurrentWordIsPerfect] = useState(true);
   const [currentWordUsedHint, setCurrentWordUsedHint] = useState(false);
   const [positionStatuses, setPositionStatuses] = useState([]);
+  const [showAutoStartMessage, setShowAutoStartMessage] = useState(false);
 
   const audioContextRef = useRef(null);
+  const autoStartTimeoutRef = useRef(null);
   const selectedTestSet = getTestSetById(selectedTestSetId);
 
   const initializeQueue = (entries) => {
@@ -86,10 +88,25 @@ export default function App() {
     return shuffled;
   };
 
-  const startGame = () => {
-    if (!selectedTestSet) return;
+  const startGame = (testSetId = null) => {
+    const testSetToStart = testSetId ? getTestSetById(testSetId) : selectedTestSet;
+    if (!testSetToStart) return;
 
-    const initialQueue = initializeQueue(selectedTestSet.entries);
+    if (testSetId) {
+      setSelectedTestSetId(testSetId);
+
+      if (autoStartTimeoutRef.current) {
+        clearTimeout(autoStartTimeoutRef.current);
+      }
+
+      setShowAutoStartMessage(true);
+      autoStartTimeoutRef.current = setTimeout(() => {
+        setShowAutoStartMessage(false);
+        autoStartTimeoutRef.current = null;
+      }, 1800);
+    }
+
+    const initialQueue = initializeQueue(testSetToStart.entries);
     setQueue(initialQueue);
     setCurrentEntry(initialQueue[0].entry);
     setIsCurrentWordRetry(initialQueue[0].isRetry);
@@ -97,6 +114,28 @@ export default function App() {
     setScoreSequence([]);
     setTotalScore(0);
     resetWordState(initialQueue[0].entry);
+  };
+
+  const goHome = () => {
+    if (autoStartTimeoutRef.current) {
+      clearTimeout(autoStartTimeoutRef.current);
+      autoStartTimeoutRef.current = null;
+    }
+
+    setGameState('start');
+    setCurrentEntry(null);
+    setQueue([]);
+    setScoreSequence([]);
+    setTotalScore(0);
+    setMistakesOnPosition(0);
+    setTypedLetters([]);
+    setCurrentPosition(0);
+    setWrongLetters(new Set());
+    setHintedLetter(null);
+    setCurrentWordIsPerfect(true);
+    setCurrentWordUsedHint(false);
+    setPositionStatuses([]);
+    setShowAutoStartMessage(false);
   };
 
   const resetWordState = (entry) => {
@@ -338,7 +377,7 @@ export default function App() {
                     <button
                       key={testSet.id}
                       type="button"
-                      onClick={() => setSelectedTestSetId(testSet.id)}
+                      onClick={() => startGame(testSet.id)}
                       className={`w-full rounded-xl border p-4 text-left transition-all ${
                         isSelected
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-200 dark:ring-blue-800'
@@ -370,14 +409,6 @@ export default function App() {
             <p>{t('instructions.hintDot')}</p>
             <p>{t('instructions.hintMechanic')}</p>
           </div>
-          <button 
-            onClick={startGame}
-            disabled={!selectedTestSet}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-lg shadow-md border-none outline-none disabled:cursor-not-allowed disabled:active:scale-100"
-          >
-            <Play className="w-6 h-6 fill-current" />
-            {selectedTestSet ? t('app.startButton') : t('app.selectSetFirst')}
-          </button>
         </div>
       </div>
     );
@@ -443,37 +474,70 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300">
-      <header className="bg-white dark:bg-slate-800 px-4 md:px-6 py-4 shadow-sm border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 z-10 transition-colors duration-300">
-        <div className="flex items-center gap-6">
-          <div className="hidden md:flex flex-col">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('testSets.currentLabel')}</span>
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t(selectedTestSet.titleKey)}</span>
-          </div>
-          <div className="flex gap-2 items-center">
-            <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.words')}</span>
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{queue.length}</span>
-          </div>
-          <div className="flex gap-2 items-center">
-            <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.points')}</span>
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalScore}</span>
-          </div>
-          <div className="flex gap-2 items-center">
-            <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.symbols')}</span>
-            <div className="flex gap-1 flex-wrap">
-              {scoreSequence.map((symbol, idx) => (
-                <div key={idx} className="flex items-center justify-center w-6 h-6">
-                  {symbol === 'perfect' ? (
-                    <Star className="w-5 h-5 text-yellow-500 dark:text-yellow-400 fill-current" />
-                  ) : symbol === 'incorrect' ? (
-                    <span className="block h-3.5 w-3.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-                  ) : symbol === 'hintUsed' ? (
-                    <span className="block h-3.5 w-3.5 rounded-full bg-red-500 dark:bg-red-400" />
-                  ) : null}
-                </div>
-              ))}
+      {showAutoStartMessage && (
+        <div className="pointer-events-none fixed inset-0 z-30 flex items-start justify-center px-4 pt-16 md:pt-20">
+          <div className="relative overflow-hidden rounded-3xl border border-emerald-200/80 bg-white/92 px-5 py-4 shadow-2xl shadow-emerald-500/20 backdrop-blur-xl dark:border-emerald-700/70 dark:bg-slate-900/90">
+            <div className="absolute -left-8 -top-8 h-20 w-20 rounded-full bg-emerald-300/35 blur-2xl dark:bg-emerald-500/20" />
+            <div className="absolute -right-6 -bottom-10 h-24 w-24 rounded-full bg-sky-300/35 blur-2xl dark:bg-sky-500/20" />
+            <div className="relative flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-400 to-sky-500 text-white shadow-lg shadow-emerald-500/30">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-600 dark:text-emerald-300">
+                  {t('testSets.currentLabel')}
+                </p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{t('app.startedAutomatically')}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">{t(selectedTestSet.titleKey)}</p>
+              </div>
             </div>
           </div>
         </div>
+      )}
+
+      <header className="bg-white dark:bg-slate-800 px-4 md:px-6 py-4 shadow-sm border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 z-10 transition-colors duration-300">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex flex-col">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('testSets.currentLabel')}</span>
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t(selectedTestSet.titleKey)}</span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.words')}</span>
+              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{queue.length}</span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.points')}</span>
+              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalScore}</span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.symbols')}</span>
+              <div className="flex gap-1 flex-wrap">
+                {scoreSequence.map((symbol, idx) => (
+                  <div key={idx} className="flex items-center justify-center w-6 h-6">
+                    {symbol === 'perfect' ? (
+                      <Star className="w-5 h-5 text-yellow-500 dark:text-yellow-400 fill-current" />
+                    ) : symbol === 'incorrect' ? (
+                      <span className="block h-3.5 w-3.5 rounded-full bg-slate-400 dark:bg-slate-500" />
+                    ) : symbol === 'hintUsed' ? (
+                      <span className="block h-3.5 w-3.5 rounded-full bg-red-500 dark:bg-red-400" />
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={goHome}
+          type="button"
+          aria-label={t('app.homeButton')}
+          title={t('app.homeButton')}
+          className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-100 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md dark:border-slate-600 dark:from-slate-700 dark:to-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-300"
+        >
+          <House className="h-5 w-5 transition-transform group-hover:scale-110" />
+        </button>
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">

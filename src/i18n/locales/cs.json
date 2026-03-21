@@ -3,6 +3,8 @@
     "title": "Slovní kvíz",
     "startButton": "Začít hru",
     "selectSetFirst": "Nejdřív vyber test",
+    "startedAutomatically": "Hra byla spuštěná automaticky",
+    "homeButton": "Domů",
     "playAgainButton": "Hrát znovu",
     "finishedTitle": "Kolo ukončeno!",
     "finishedMessage": "Máš hotovo — všechna slovesa jsou splněná. Skvělá práce!"

@@ -3,6 +3,8 @@
     "title": "Vocabulary Quiz",
     "startButton": "Start Game",
     "selectSetFirst": "Select a Test Set First",
+    "startedAutomatically": "Game started automatically",
+    "homeButton": "Home",
     "playAgainButton": "Play Again",
     "finishedTitle": "Round Finished!",
     "finishedMessage": "All verbs were completed. Nice work."
