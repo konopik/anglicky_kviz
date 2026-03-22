@@ -502,26 +502,26 @@ export default function App() {
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('testSets.currentLabel')}</span>
               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t(selectedTestSet.titleKey)}</span>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-              <div className="flex gap-2 items-center">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.words')}</span>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{queue.length}</span>
+            <div className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-6">
+              <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+                <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.words')}</span>
+                <span className="text-base font-bold text-blue-600 dark:text-blue-400 sm:text-lg">{queue.length}</span>
               </div>
-              <div className="flex gap-2 items-center">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.points')}</span>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalScore}</span>
+              <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+                <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.points')}</span>
+                <span className="text-base font-bold text-blue-600 dark:text-blue-400 sm:text-lg">{totalScore}</span>
               </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.symbols')}</span>
-                <div className="flex gap-1 flex-wrap">
+              <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.symbols')}</span>
+                <div className="flex min-w-0 gap-1 overflow-x-auto pr-1 sm:flex-wrap sm:overflow-visible">
                   {scoreSequence.map((symbol, idx) => (
-                    <div key={idx} className="flex items-center justify-center w-6 h-6">
+                    <div key={idx} className="flex h-5 w-5 shrink-0 items-center justify-center sm:h-6 sm:w-6">
                       {symbol === 'perfect' ? (
-                        <Star className="w-5 h-5 text-yellow-500 dark:text-yellow-400 fill-current" />
+                        <Star className="h-[1.125rem] w-[1.125rem] fill-current text-yellow-500 dark:text-yellow-400 sm:h-5 sm:w-5" />
                       ) : symbol === 'incorrect' ? (
-                        <span className="block h-3.5 w-3.5 rounded-full bg-slate-400 dark:bg-slate-500" />
+                        <span className="block h-3 w-3 rounded-full bg-slate-400 dark:bg-slate-500 sm:h-3.5 sm:w-3.5" />
                       ) : symbol === 'hintUsed' ? (
-                        <span className="block h-3.5 w-3.5 rounded-full bg-red-500 dark:bg-red-400" />
+                        <span className="block h-3 w-3 rounded-full bg-red-500 dark:bg-red-400 sm:h-3.5 sm:w-3.5" />
                       ) : null}
                     </div>
                   ))}
@@ -547,10 +547,10 @@ export default function App() {
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t(selectedTestSet.promptLabelKey)}</p>
           <h2 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-6 break-words">{currentEntry.prompt}</h2>
           
-          <div className="flex justify-center gap-2 md:gap-3 mb-8 flex-wrap">
+          <div className="mb-8 flex flex-wrap justify-center gap-1.5 md:gap-2.5">
             {expectedAnswer.split('').map((letter, idx) => {
               if (letter === ' ') {
-                return <div key={`space-${idx}`} className="w-4 md:w-6 h-12 md:h-14" aria-hidden="true" />;
+                return <div key={`space-${idx}`} className="h-[2.75rem] w-3 md:h-[3.1rem] md:w-5" aria-hidden="true" />;
               }
 
               const isTyped = Boolean(typedLetters[idx]);
@@ -580,7 +580,7 @@ export default function App() {
               return (
                 <div
                   key={idx}
-                  className={`w-12 h-12 md:w-14 md:h-14 rounded-lg font-bold text-lg md:text-xl flex items-center justify-center border-2 transition-all ${bgClass}`}
+                  className={`flex h-[2.75rem] w-[2.75rem] items-center justify-center rounded-lg border-2 text-base font-bold transition-all md:h-[3.1rem] md:w-[3.1rem] md:text-lg ${bgClass}`}
                   onClick={() => isHinted && handleHintedLetterClick()}
                 >
                   {isTyped ? typedLetters[idx] : isHinted ? letter : ''}
