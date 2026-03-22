@@ -495,49 +495,51 @@ export default function App() {
         </div>
       )}
 
-      <header className="bg-white dark:bg-slate-800 px-4 md:px-6 py-4 shadow-sm border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 z-10 transition-colors duration-300">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-6">
+      <header className="bg-white dark:bg-slate-800 px-4 md:px-6 py-4 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 transition-colors duration-300">
+        <div className="flex items-start justify-between gap-3 sm:items-center">
+          <div className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="hidden md:flex flex-col">
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('testSets.currentLabel')}</span>
               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t(selectedTestSet.titleKey)}</span>
             </div>
-            <div className="flex gap-2 items-center">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.words')}</span>
-              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{queue.length}</span>
-            </div>
-            <div className="flex gap-2 items-center">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.points')}</span>
-              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalScore}</span>
-            </div>
-            <div className="flex gap-2 items-center">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.symbols')}</span>
-              <div className="flex gap-1 flex-wrap">
-                {scoreSequence.map((symbol, idx) => (
-                  <div key={idx} className="flex items-center justify-center w-6 h-6">
-                    {symbol === 'perfect' ? (
-                      <Star className="w-5 h-5 text-yellow-500 dark:text-yellow-400 fill-current" />
-                    ) : symbol === 'incorrect' ? (
-                      <span className="block h-3.5 w-3.5 rounded-full bg-slate-400 dark:bg-slate-500" />
-                    ) : symbol === 'hintUsed' ? (
-                      <span className="block h-3.5 w-3.5 rounded-full bg-red-500 dark:bg-red-400" />
-                    ) : null}
-                  </div>
-                ))}
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+              <div className="flex gap-2 items-center">
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.words')}</span>
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{queue.length}</span>
+              </div>
+              <div className="flex gap-2 items-center">
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.points')}</span>
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalScore}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{t('gameplay.symbols')}</span>
+                <div className="flex gap-1 flex-wrap">
+                  {scoreSequence.map((symbol, idx) => (
+                    <div key={idx} className="flex items-center justify-center w-6 h-6">
+                      {symbol === 'perfect' ? (
+                        <Star className="w-5 h-5 text-yellow-500 dark:text-yellow-400 fill-current" />
+                      ) : symbol === 'incorrect' ? (
+                        <span className="block h-3.5 w-3.5 rounded-full bg-slate-400 dark:bg-slate-500" />
+                      ) : symbol === 'hintUsed' ? (
+                        <span className="block h-3.5 w-3.5 rounded-full bg-red-500 dark:bg-red-400" />
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <button
-          onClick={goHome}
-          type="button"
-          aria-label={t('app.homeButton')}
-          title={t('app.homeButton')}
-          className="group flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-100 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md dark:border-slate-600 dark:from-slate-700 dark:to-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-300"
-        >
-          <House className="h-5 w-5 transition-transform group-hover:scale-110" />
-        </button>
+          <button
+            onClick={goHome}
+            type="button"
+            aria-label={t('app.homeButton')}
+            title={t('app.homeButton')}
+            className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-100 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md dark:border-slate-600 dark:from-slate-700 dark:to-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-300"
+          >
+            <House className="h-5 w-5 transition-transform group-hover:scale-110" />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
