@@ -456,7 +456,7 @@ export default function App() {
           </div>
           
           <button 
-            onClick={startGame}
+            onClick={() => startGame(selectedTestSetId)}
             className="w-full mt-4 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md border-none outline-none"
           >
             <RotateCcw className="w-5 h-5" />
@@ -495,7 +495,7 @@ export default function App() {
         </div>
       )}
 
-      <header className="bg-white dark:bg-slate-800 px-4 md:px-6 py-4 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 transition-colors duration-300">
+      <header className="bg-white dark:bg-slate-800 px-4 md:px-6 py-3 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 transition-colors duration-300">
         <div className="flex items-start justify-between gap-3 sm:items-center">
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             <div className="hidden md:flex flex-col">
@@ -542,8 +542,8 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 md:p-10 mb-8 transition-colors duration-300 text-center">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 pt-3 pb-4 md:px-6 md:pt-4 md:pb-6 flex flex-col justify-start">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 md:p-10 mb-4 transition-colors duration-300 text-center">
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t(selectedTestSet.promptLabelKey)}</p>
           <h2 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-6 break-words">{currentEntry.prompt}</h2>
           
@@ -596,7 +596,7 @@ export default function App() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 sm:p-4 md:p-8 transition-colors duration-300 mb-8">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 sm:p-4 md:p-8 transition-colors duration-300 mb-4">
           <CanvasKeyboard
             qwertyRows={selectedTestSet.keyboardRows}
             typedLetters={typedLetters}
