@@ -502,7 +502,7 @@ export default function App() {
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('testSets.currentLabel')}</span>
               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{t(selectedTestSet.titleKey)}</span>
             </div>
-            <div className="grid grid-cols-3 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-6">
+            <div className="grid min-w-0 grid-cols-[max-content_max-content_minmax(0,1fr)] items-start gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:items-center sm:gap-6">
               <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
                 <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.words')}</span>
                 <span className="text-base font-bold text-blue-600 dark:text-blue-400 sm:text-lg">{queue.length}</span>
@@ -511,9 +511,9 @@ export default function App() {
                 <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.points')}</span>
                 <span className="text-base font-bold text-blue-600 dark:text-blue-400 sm:text-lg">{totalScore}</span>
               </div>
-              <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3 sm:justify-self-start">
                 <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.symbols')}</span>
-                <div className="flex min-w-0 gap-1 overflow-x-auto pr-1 sm:flex-wrap sm:overflow-visible">
+                <div className="flex min-w-0 flex-wrap gap-1 sm:max-w-none">
                   {scoreSequence.map((symbol, idx) => (
                     <div key={idx} className="flex h-5 w-5 shrink-0 items-center justify-center sm:h-6 sm:w-6">
                       {symbol === 'perfect' ? (
