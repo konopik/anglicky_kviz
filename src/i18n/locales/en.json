@@ -10,11 +10,15 @@
     "finishedMessage": "All verbs were completed. Nice work."
   },
   "instructions": {
-    "typeInstruction": "⌨️ Type the past form using the keyboard.",
+    "typeInstruction": "⌨️ Fill in the correct answer based on the prompt.",
     "perfectStar": "⭐ Yellow star = perfect word (no mistakes)",
     "incorrectDot": "⚪ Gray dot = mistakes made, word repeats",
     "hintDot": "🔴 Red dot = hint used, word repeats",
-    "hintMechanic": "❌ Wrong letters turn red. After 3 mistakes, a hint appears (red dot recorded)."
+    "hintMechanic": "❌ Wrong letters turn red. After 3 mistakes, a hint appears (red dot recorded).",
+    "worksheetIntro": "📝 The new German quiz uses its own worksheet layout with possessive forms and endings.",
+    "worksheetCheck": "✅ Fill in a whole section and then check it with one button.",
+    "worksheetEnding": "🔤 In “Ergänze -e” tasks you choose whether to add “e” or nothing.",
+    "worksheetRetry": "🔁 Wrong answers are highlighted so you can fix them right away."
   },
   "gameplay": {
     "typePromptPast": "Type the past form of:",
@@ -45,10 +49,36 @@
     "germanAdjectives1": {
       "title": "German Adjectives",
       "description": "See the Czech meaning and type the German adjective"
+    },
+    "germanPossessiveArticles1": {
+      "title": "German Possessive Articles",
+      "description": "Worksheet practice for mein/dein/sein/ihr/unser/euer based on the provided exercise"
     }
   },
   "symbols": {
     "sequence": "Acquired Badges",
     "odznak": "badge"
+  },
+  "worksheet": {
+    "progressLabel": "Worksheet",
+    "sectionCounter": "Section {{current}} of {{total}}",
+    "sectionBadge": "Section {{current}} / {{total}}",
+    "optionNoEnding": "no -e",
+    "optionAddEnding": "+e",
+    "articlePlaceholder": "enter form",
+    "fillAllMessage": "Fill in all answers in this section first.",
+    "tryAgainMessage": "{{count}} answers still need to be corrected.",
+    "sectionPassedMessage": "Great, this section is complete.",
+    "progressItems": "Completed items: {{completed}} / {{total}}",
+    "checkButton": "Check section",
+    "nextSectionButton": "Next section",
+    "finishButton": "Show result",
+    "finishedTitle": "Worksheet complete!",
+    "finishedMessage": "You finished all sections of the new German quiz.",
+    "summary": {
+      "completedSections": "Completed sections",
+      "corrections": "Corrections",
+      "completedItems": "Completed items"
+    }
   }
 }

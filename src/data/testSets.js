@@ -1,3 +1,5 @@
+import { GERMAN_POSSESSIVE_QUIZ } from './germanPossessiveQuiz';
+
 export const ENGLISH_KEYBOARD_ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
   ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
@@ -100,6 +102,13 @@ export const TEST_SETS = [
       { prompt: 'sobecký', answer: 'egoistisch' },
       { prompt: 'nepřátelský', answer: 'unfreundlich' }
     ]
+  },
+  {
+    id: 'german-possessive-articles-1',
+    titleKey: 'testSets.germanPossessiveArticles1.title',
+    descriptionKey: 'testSets.germanPossessiveArticles1.description',
+    mode: 'worksheet',
+    sections: GERMAN_POSSESSIVE_QUIZ.sections
   }
 ];
 

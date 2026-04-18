@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Star, CheckCircle, RotateCcw, House, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CanvasKeyboard from './components/CanvasKeyboard';
+import GermanPossessiveQuiz from './components/GermanPossessiveQuiz';
 import { TEST_SETS, getTestSetById } from './data/testSets';
 
 const MISTAKES_FOR_HINT = 3;
@@ -72,10 +73,12 @@ export default function App() {
   const [currentWordUsedHint, setCurrentWordUsedHint] = useState(false);
   const [positionStatuses, setPositionStatuses] = useState([]);
   const [showAutoStartMessage, setShowAutoStartMessage] = useState(false);
+  const [worksheetSessionKey, setWorksheetSessionKey] = useState(0);
 
   const audioContextRef = useRef(null);
   const autoStartTimeoutRef = useRef(null);
   const selectedTestSet = getTestSetById(selectedTestSetId);
+  const isWorksheetTestSet = selectedTestSet?.mode === 'worksheet';
 
   const initializeQueue = (entries) => {
     // Fisher-Yates shuffle
@@ -104,6 +107,26 @@ export default function App() {
         setShowAutoStartMessage(false);
         autoStartTimeoutRef.current = null;
       }, 1800);
+    }
+
+    if (testSetToStart.mode === 'worksheet') {
+      setGameState('playing');
+      setWorksheetSessionKey((current) => current + 1);
+      setQueue([]);
+      setCurrentEntry(null);
+      setIsCurrentWordRetry(false);
+      setScoreSequence([]);
+      setTotalScore(0);
+      setMistakesOnPosition(0);
+      setTypedLetters([]);
+      setCurrentPosition(0);
+      setWrongLetters(new Set());
+      setHintedLetter(null);
+      setCurrentWordIsPerfect(true);
+      setCurrentWordUsedHint(false);
+      setPositionStatuses([]);
+      setShowAutoStartMessage(false);
+      return;
     }
 
     const initialQueue = initializeQueue(testSetToStart.entries);
@@ -403,14 +426,35 @@ export default function App() {
             )}
           </div>
           <div className="text-slate-600 dark:text-slate-300 leading-relaxed space-y-3 text-left bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl">
-            <p>{t('instructions.typeInstruction')}</p>
-            <p>{t('instructions.perfectStar')}</p>
-            <p>{t('instructions.incorrectDot')}</p>
-            <p>{t('instructions.hintDot')}</p>
-            <p>{t('instructions.hintMechanic')}</p>
+            <p>{t(isWorksheetTestSet ? 'instructions.worksheetIntro' : 'instructions.typeInstruction')}</p>
+            {isWorksheetTestSet ? (
+              <>
+                <p>{t('instructions.worksheetCheck')}</p>
+                <p>{t('instructions.worksheetEnding')}</p>
+                <p>{t('instructions.worksheetRetry')}</p>
+              </>
+            ) : (
+              <>
+                <p>{t('instructions.perfectStar')}</p>
+                <p>{t('instructions.incorrectDot')}</p>
+                <p>{t('instructions.hintDot')}</p>
+                <p>{t('instructions.hintMechanic')}</p>
+              </>
+            )}
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (gameState === 'playing' && isWorksheetTestSet && selectedTestSet) {
+    return (
+      <GermanPossessiveQuiz
+        key={`${selectedTestSetId}-${worksheetSessionKey}`}
+        testSet={selectedTestSet}
+        onHome={goHome}
+        onRestart={() => startGame(selectedTestSetId)}
+      />
     );
   }
 
@@ -614,6 +658,4 @@ export default function App() {
     </div>
   );
 }
-
-
 
