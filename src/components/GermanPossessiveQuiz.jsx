@@ -63,6 +63,10 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
   const incorrectCount = evaluation.filter((item) => !item.isCorrect).length;
 
   const goToSection = (nextIndex) => {
+    if (nextIndex < 0 || nextIndex >= totalSections) {
+      return;
+    }
+
     setSectionIndex(nextIndex);
   };
 
@@ -280,6 +284,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
                   <button
                     key={section.id}
                     type="button"
+                    disabled={isCurrent}
                     onClick={() => goToSection(index)}
                     aria-current={isCurrent ? 'step' : undefined}
                     title={t('worksheet.sectionCounter', { current: index + 1, total: totalSections })}
@@ -289,7 +294,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
                         : isPassed
                           ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300'
                           : 'border-slate-300 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500'
-                    }`}
+                    } ${isCurrent ? 'cursor-default' : ''}`}
                   >
                     {isPassed && <CheckCircle className="h-4 w-4" />}
                     <span>{index + 1}. {section.title}</span>
