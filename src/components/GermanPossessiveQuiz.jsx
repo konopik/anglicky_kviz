@@ -27,14 +27,17 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
   const currentSection = testSet.sections[sectionIndex];
   const currentSectionState = sectionStates[sectionIndex];
   const totalSections = testSet.sections.length;
-  const totalItems = testSet.sections.reduce((total, section) => total + section.items.length, 0);
+  const totalItems = useMemo(
+    () => testSet.sections.reduce((total, section) => total + section.items.length, 0),
+    [testSet.sections]
+  );
   const answers = currentSectionState.answers;
   const submitted = currentSectionState.submitted;
   const sectionPassed = currentSectionState.passed;
   const countedMistakes = currentSectionState.countedMistakes;
-  const completedItems = testSet.sections.reduce((total, section, index) => (
+  const completedItems = useMemo(() => testSet.sections.reduce((total, section, index) => (
     sectionStates[index].passed ? total + section.items.length : total
-  ), 0);
+  ), 0), [sectionStates, testSet.sections]);
   const allSectionsPassed = sectionStates.every((sectionState) => sectionState.passed);
 
   const evaluation = useMemo(() => currentSection.items.map((item, index) => {
