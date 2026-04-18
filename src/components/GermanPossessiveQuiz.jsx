@@ -18,6 +18,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
   const [finished, setFinished] = useState(false);
   const [mistakeCount, setMistakeCount] = useState(0);
   const [completedItems, setCompletedItems] = useState(0);
+  const [countedMistakes, setCountedMistakes] = useState(() => new Set());
 
   const currentSection = testSet.sections[sectionIndex];
   const totalSections = testSet.sections.length;
@@ -50,6 +51,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
     setAnswers(createInitialAnswers(testSet.sections[nextIndex]));
     setSubmitted(false);
     setSectionPassed(false);
+    setCountedMistakes(new Set());
   };
 
   const handleCheck = () => {
@@ -70,7 +72,23 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
     }
 
     if (incorrectCount > 0) {
-      setMistakeCount((current) => current + incorrectCount);
+      const newIncorrectIndexes = evaluation.reduce((indexes, item, index) => {
+        if (!item.isCorrect && !countedMistakes.has(index)) {
+          indexes.push(index);
+        }
+
+        return indexes;
+      }, []);
+
+      if (newIncorrectIndexes.length > 0) {
+        setMistakeCount((current) => current + newIncorrectIndexes.length);
+        setCountedMistakes((current) => {
+          const next = new Set(current);
+          newIncorrectIndexes.forEach((index) => next.add(index));
+          return next;
+        });
+      }
+
       return;
     }
 
