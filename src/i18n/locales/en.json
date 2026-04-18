@@ -63,6 +63,7 @@
     "progressLabel": "Worksheet",
     "sectionCounter": "Section {{current}} of {{total}}",
     "sectionBadge": "Section {{current}} / {{total}}",
+    "sectionJumpLabel": "Jump to section",
     "optionNoEnding": "no -e",
     "optionAddEnding": "+e",
     "articlePlaceholder": "enter form",
