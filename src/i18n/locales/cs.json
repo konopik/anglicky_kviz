@@ -10,11 +10,15 @@
     "finishedMessage": "Máš hotovo — všechna slovesa jsou splněná. Skvělá práce!"
   },
   "instructions": {
-    "typeInstruction": "⌨️ Napiš minulý tvar slovesa pomocí klávesnice.",
+    "typeInstruction": "⌨️ Doplň správnou odpověď podle zadání.",
     "perfectStar": "⭐ Žlutá hvězda = bezchybná odpověď",
     "incorrectDot": "⚪ Šedá tečka = udělaná chyba, slovo se později zopakuje",
     "hintDot": "🔴 Červená tečka = použitá nápověda, slovo se později zopakuje",
-    "hintMechanic": "❌ Chybně zadaná písmena se označí červeně. Po 3 chybách se zobrazí nápověda (a započítá se červený odznak)."
+    "hintMechanic": "❌ Chybně zadaná písmena se označí červeně. Po 3 chybách se zobrazí nápověda (a započítá se červený odznak).",
+    "worksheetIntro": "📝 Nový německý kvíz má vlastní pracovní list s doplňováním tvarů a koncovek.",
+    "worksheetCheck": "✅ Vyplň celou sekci a potom ji zkontroluj jedním tlačítkem.",
+    "worksheetEnding": "🔤 U úloh „Ergänze -e“ vybíráš, jestli se doplní „e“, nebo nic.",
+    "worksheetRetry": "🔁 Chybné odpovědi se zvýrazní a můžeš je hned opravit."
   },
   "gameplay": {
     "typePromptPast": "Napiš minulý tvar slovesa:",
@@ -45,10 +49,36 @@
     "germanAdjectives1": {
       "title": "Němčina – přídavná jména",
       "description": "Uvidíš český význam a napíšeš německé přídavné jméno"
+    },
+    "germanPossessiveArticles1": {
+      "title": "Němčina – přivlastňovací členy",
+      "description": "Pracovní list na mein/dein/sein/ihr/unser/euer podle přiloženého zadání"
     }
   },
   "symbols": {
     "sequence": "Získané odznaky",
     "odznak": "odznak"
+  },
+  "worksheet": {
+    "progressLabel": "Pracovní list",
+    "sectionCounter": "Sekce {{current}} z {{total}}",
+    "sectionBadge": "Sekce {{current}} / {{total}}",
+    "optionNoEnding": "bez -e",
+    "optionAddEnding": "+e",
+    "articlePlaceholder": "doplň tvar",
+    "fillAllMessage": "Nejdřív vyplň všechna pole v této sekci.",
+    "tryAgainMessage": "Ještě je potřeba opravit {{count}} odpovědí.",
+    "sectionPassedMessage": "Skvělé, tahle sekce je hotová.",
+    "progressItems": "Hotové položky: {{completed}} / {{total}}",
+    "checkButton": "Zkontrolovat sekci",
+    "nextSectionButton": "Další sekce",
+    "finishButton": "Zobrazit výsledek",
+    "finishedTitle": "Pracovní list je hotový!",
+    "finishedMessage": "Máš splněné všechny sekce z nového německého kvízu.",
+    "summary": {
+      "completedSections": "Hotové sekce",
+      "corrections": "Počet oprav",
+      "completedItems": "Hotové položky"
+    }
   }
 }
