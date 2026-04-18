@@ -23,6 +23,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
   ));
   const [finished, setFinished] = useState(false);
   const [mistakeCount, setMistakeCount] = useState(0);
+  const [completedItems, setCompletedItems] = useState(0);
 
   const currentSection = testSet.sections[sectionIndex];
   const currentSectionState = sectionStates[sectionIndex];
@@ -35,9 +36,6 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
   const submitted = currentSectionState.submitted;
   const sectionPassed = currentSectionState.passed;
   const countedMistakes = currentSectionState.countedMistakes;
-  const completedItems = useMemo(() => testSet.sections.reduce((total, section, index) => (
-    sectionStates[index].passed ? total + section.items.length : total
-  ), 0), [sectionStates, testSet.sections]);
   const allSectionsPassed = sectionStates.every((sectionState) => sectionState.passed);
 
   const evaluation = useMemo(() => currentSection.items.map((item, index) => {
@@ -145,6 +143,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
         ? { ...sectionState, passed: true, submitted: true }
         : sectionState
     )));
+    setCompletedItems((current) => current + currentSection.items.length);
   };
 
   const handleEndingSelect = (index, value) => {
@@ -294,7 +293,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
                         : isPassed
                           ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300'
                           : 'border-slate-300 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500'
-                    } ${isCurrent ? 'cursor-default' : ''}`}
+                    }`}
                   >
                     {isPassed && <CheckCircle className="h-4 w-4" />}
                     <span>{index + 1}. {section.title}</span>
