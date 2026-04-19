@@ -54,6 +54,14 @@ const advancePastSpaces = (expectedAnswer, typedLetters, positionStatuses, start
   return nextPosition;
 };
 
+const getHiddenAnswerVisibleLength = ({ currentPosition, mistakesOnPosition, hintedLetter }) => {
+  if (mistakesOnPosition > 0 || hintedLetter !== null || currentPosition === 0) {
+    return currentPosition + 1;
+  }
+
+  return currentPosition;
+};
+
 export default function App() {
   const { t, i18n } = useTranslation();
   const [gameState, setGameState] = useState('start');
@@ -540,11 +548,7 @@ export default function App() {
   const expectedAnswer = normalizeAnswerText(currentEntry.answer);
   const isWordComplete = isWordLocked;
   const hiddenAnswerVisibleLength = selectedTestSet.hideAnswerLength
-    ? (
-      mistakesOnPosition > 0 || hintedLetter !== null || currentPosition === 0
-        ? currentPosition + 1
-        : currentPosition
-    )
+    ? getHiddenAnswerVisibleLength({ currentPosition, mistakesOnPosition, hintedLetter })
     : expectedAnswer.length;
   const displayedAnswerCharacters = (
     selectedTestSet.hideAnswerLength
