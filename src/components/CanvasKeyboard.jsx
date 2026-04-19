@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Check } from 'lucide-react';
+
+const SUBMIT_KEY = '__SUBMIT__';
+const KEYBOARD_HEIGHT = 'clamp(200px, 42vw, 240px)';
 
 const CanvasKeyboard = ({
   qwertyRows,
@@ -19,6 +21,9 @@ const CanvasKeyboard = ({
   const containerRef = useRef(null);
   const keyPositionsRef = useRef([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const keyboardRows = showSubmitKey
+    ? [...qwertyRows.slice(0, -1), [...qwertyRows[qwertyRows.length - 1], SUBMIT_KEY]]
+    : qwertyRows;
 
   // Detect dark mode
   useEffect(() => {
@@ -104,10 +109,10 @@ const CanvasKeyboard = ({
     const isMobile = width < 600;
     const padding = isMobile ? 2 : 8;
     const keyMargin = isMobile ? 2 : 6;
-    const totalRows = qwertyRows.length;
+    const totalRows = keyboardRows.length;
 
     // Key sizing based on longest row (maintains standard keyboard offset/layout)
-    const maxKeysInRow = Math.max(...qwertyRows.map(row => row.length));
+    const maxKeysInRow = Math.max(...keyboardRows.map(row => row.length));
     const availableWidth = width - padding * 2 - keyMargin * (maxKeysInRow - 1);
     const keyWidth = availableWidth / maxKeysInRow;
     const keyHeight = (height - padding * 2 - keyMargin * (totalRows - 1)) / totalRows;
@@ -116,8 +121,8 @@ const CanvasKeyboard = ({
     const positions = [];
     let keyId = 0;
 
-    for (let rowIdx = 0; rowIdx < qwertyRows.length; rowIdx++) {
-      const row = qwertyRows[rowIdx];
+    for (let rowIdx = 0; rowIdx < keyboardRows.length; rowIdx++) {
+      const row = keyboardRows[rowIdx];
       const rowOffset = ((maxKeysInRow - row.length) * keyStep) / 2;
       const rowStartX = padding + rowOffset;
 
@@ -140,7 +145,7 @@ const CanvasKeyboard = ({
     }
 
     return positions;
-  }, [qwertyRows]);
+  }, [keyboardRows]);
 
   // Draw the keyboard on canvas
   const drawKeyboard = useCallback((canvas, positions, containerWidth, containerHeight) => {
@@ -161,10 +166,11 @@ const CanvasKeyboard = ({
 
     // Draw each key
     for (const pos of positions) {
-      const isTyped = typedLetters.includes(pos.letter);
-      const isWrong = wrongLetters.has(pos.letter);
-      const isHinted = hintedLetter === pos.letter;
-      const isDisabled = isWordComplete;
+      const isSubmitKey = pos.letter === SUBMIT_KEY;
+      const isTyped = !isSubmitKey && typedLetters.includes(pos.letter);
+      const isWrong = !isSubmitKey && wrongLetters.has(pos.letter);
+      const isHinted = !isSubmitKey && hintedLetter === pos.letter;
+      const isDisabled = isSubmitKey ? !isSubmitEnabled || isWordComplete : isWordComplete;
 
       // Determine background color
       let bgColor = isDarkMode ? '#0f172a' : '#f8fafc'; // slate-950 / slate-50
@@ -174,6 +180,12 @@ const CanvasKeyboard = ({
 
       if (isDisabled) {
         alpha = 0.5;
+      }
+
+      if (isSubmitKey) {
+        bgColor = isDarkMode ? '#064e3b' : '#dcfce7';
+        borderColor = isDarkMode ? '#10b981' : '#22c55e';
+        textColor = isDarkMode ? '#d1fae5' : '#047857';
       } else if (isWrong) {
         bgColor = colors.wrong;
         borderColor = isDarkMode ? '#dc2626' : '#fca5a5'; // red-600 / red-300
@@ -204,11 +216,11 @@ const CanvasKeyboard = ({
       ctx.font = `bold ${Math.round(pos.height * 0.4)}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(pos.letter, pos.centerX, pos.centerY);
+      ctx.fillText(isSubmitKey ? '✓' : pos.letter, pos.centerX, pos.centerY);
 
       ctx.globalAlpha = 1;
     }
-  }, [hintedLetter, isDarkMode, isWordComplete, typedLetters, wrongLetters]);
+  }, [hintedLetter, isDarkMode, isSubmitEnabled, isWordComplete, typedLetters, wrongLetters]);
 
   const getInteractionPoint = (event) => {
     if ('clientX' in event && 'clientY' in event) {
@@ -235,6 +247,13 @@ const CanvasKeyboard = ({
     const clickY = point.clientY - rect.top;
 
     const letter = getLetterFromClick(clickX, clickY, keyPositionsRef.current, expectedLetter);
+    if (letter === SUBMIT_KEY) {
+      if (isSubmitEnabled) {
+        onSubmit?.();
+      }
+      return;
+    }
+
     if (letter) {
       onLetterClick(letter);
     }
@@ -290,7 +309,7 @@ const CanvasKeyboard = ({
       <div
         ref={containerRef}
         className="w-full"
-        style={{ height: showSubmitKey ? 'clamp(180px, 38vw, 220px)' : 'clamp(200px, 42vw, 240px)' }}
+        style={{ height: KEYBOARD_HEIGHT }}
       >
         <canvas
           ref={canvasRef}
@@ -304,24 +323,6 @@ const CanvasKeyboard = ({
           }}
         />
       </div>
-      {showSubmitKey && (
-        <div className="px-2 pb-2 pt-1 sm:px-4 sm:pb-4">
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={!isSubmitEnabled || isWordComplete}
-            aria-label={submitAriaLabel}
-            title={submitAriaLabel}
-            className={`flex w-full items-center justify-center rounded-xl border px-4 py-3 transition-colors ${
-              isSubmitEnabled && !isWordComplete
-                ? 'border-emerald-500 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:border-emerald-500 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60'
-                : 'border-slate-300 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-600'
-            }`}
-          >
-            <Check className="h-6 w-6" />
-          </button>
-        </div>
-      )}
     </div>
   );
 };
