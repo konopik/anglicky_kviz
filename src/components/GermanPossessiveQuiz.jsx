@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { CheckCircle, ChevronRight, House, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const normalizeTextAnswer = (value) => value.trim().toLocaleLowerCase();
+const normalizeTextAnswer = (value, locale = 'de-DE') => value.trim().toLocaleLowerCase(locale);
 
 const createInitialAnswers = (section) => section.items.map(() => (
   section.type === 'ending' ? null : ''
@@ -40,17 +40,18 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
 
   const evaluation = useMemo(() => currentSection.items.map((item, index) => {
     const rawAnswer = answers[index] ?? '';
+    const answerLocale = item.answerLocale ?? currentSection.answerLocale ?? 'de-DE';
     const expectedAnswers = Array.isArray(item.answer) ? item.answer : [item.answer];
-    const normalizedExpectedAnswers = expectedAnswers.map((answer) => normalizeTextAnswer(answer));
+    const normalizedExpectedAnswers = expectedAnswers.map((answer) => normalizeTextAnswer(answer, answerLocale));
     const isCorrect = currentSection.type === 'ending'
       ? rawAnswer === item.answer
-      : normalizedExpectedAnswers.includes(normalizeTextAnswer(rawAnswer));
+      : normalizedExpectedAnswers.includes(normalizeTextAnswer(rawAnswer, answerLocale));
 
     return {
       isCorrect,
       isFilled: currentSection.type === 'ending' ? rawAnswer !== null : rawAnswer.trim().length > 0
     };
-  }), [answers, currentSection.items, currentSection.type]);
+  }), [answers, currentSection.answerLocale, currentSection.items, currentSection.type]);
 
   const allFilled = currentSection.items.every((_, index) => {
     if (currentSection.type === 'ending') {

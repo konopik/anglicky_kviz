@@ -4,6 +4,7 @@ export const GERMAN_POSSESSIVE_TRANSLATION_QUIZ = {
       id: 'translation-to-czech',
       title: 'Přelož do češtiny.',
       description: 'Napiš český překlad pro každý německý výraz.',
+      answerLocale: 'cs-CZ',
       type: 'article',
       items: [
         { prompt: 'ihr Hobby', answer: ['její hobby', 'její koníček'] },
