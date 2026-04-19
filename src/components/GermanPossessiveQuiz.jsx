@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { CheckCircle, ChevronRight, House, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const normalizeTextAnswer = (value, locale = 'de-DE') => value.trim().toLocaleLowerCase(locale);
+const normalizeTextAnswer = (value, normalizationLocale = 'de-DE') => value.trim().toLocaleLowerCase(normalizationLocale);
 
 const createInitialAnswers = (section) => section.items.map(() => (
   section.type === 'ending' ? null : ''

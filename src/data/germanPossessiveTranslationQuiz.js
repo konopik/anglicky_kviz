@@ -5,7 +5,7 @@ export const GERMAN_POSSESSIVE_TRANSLATION_QUIZ = {
       title: 'Přelož do češtiny.',
       description: 'Napiš český překlad pro každý německý výraz.',
       answerLocale: 'cs-CZ',
-      type: 'article',
+      type: 'translation',
       items: [
         { prompt: 'ihr Hobby', answer: ['její hobby', 'její koníček'] },
         { prompt: 'sein Hobby', answer: ['jeho hobby', 'jeho koníček'] },
@@ -21,7 +21,7 @@ export const GERMAN_POSSESSIVE_TRANSLATION_QUIZ = {
       id: 'translation-to-german-a',
       title: 'Übersetze ins Deutsche.',
       description: 'Napiš německý překlad pro každý český výraz.',
-      type: 'article',
+      type: 'translation',
       items: [
         { prompt: 'moje maminka', answer: ['meine Mutter', 'meine Mama', 'meine Mutti'] },
         { prompt: 'jeho maminka', answer: ['seine Mutter', 'seine Mama', 'seine Mutti'] },
@@ -36,7 +36,7 @@ export const GERMAN_POSSESSIVE_TRANSLATION_QUIZ = {
       id: 'translation-to-german-b',
       title: 'Übersetze ins Deutsche.',
       description: 'Dokonči druhou polovinu překladu do němčiny.',
-      type: 'article',
+      type: 'translation',
       items: [
         { prompt: 'naše dítě', answer: 'unser Kind' },
         { prompt: 'její miminko', answer: ['ihr Baby', 'ihr Kind'] },
