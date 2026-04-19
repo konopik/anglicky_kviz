@@ -24,6 +24,9 @@
   "gameplay": {
     "typePromptPast": "Napiš minulý tvar slovesa:",
     "typePromptGerman": "Napiš německé slovo pro:",
+    "typePromptGermanPronoun": "Napiš německé zájmeno:",
+    "typePromptCzechPronoun": "Napiš české zájmeno:",
+    "contextNoun": "předvyplněné podstatné jméno: {{noun}}",
     "hintMessage": "💡 Správné písmeno je zvýrazněné. Klikni na něj a pokračuj.",
     "words": "Zbývá:",
     "points": "Body:",
@@ -57,7 +60,7 @@
     },
     "germanPossessiveTranslation1": {
       "title": "Němčina – překládej rychle",
-      "description": "Rychlý překlad přivlastňovacích spojení do němčiny na německé klávesnici bez zobrazení délky odpovědi"
+      "description": "Přeložte přivlastňovací zájmeno oběma směry: česky ↔ německy"
     }
   },
   "symbols": {

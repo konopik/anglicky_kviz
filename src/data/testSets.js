@@ -120,7 +120,6 @@ export const TEST_SETS = [
     id: 'german-possessive-translation-1',
     titleKey: 'testSets.germanPossessiveTranslation1.title',
     descriptionKey: 'testSets.germanPossessiveTranslation1.description',
-    promptLabelKey: 'gameplay.typePromptGerman',
     keyboardRows: GERMAN_KEYBOARD_ROWS,
     hideAnswerLength: true,
     entries: GERMAN_POSSESSIVE_TRANSLATION_QUIZ.entries

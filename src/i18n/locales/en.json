@@ -24,6 +24,9 @@
   "gameplay": {
     "typePromptPast": "Type the past form of:",
     "typePromptGerman": "Type the German word for:",
+    "typePromptGermanPronoun": "Type the German pronoun:",
+    "typePromptCzechPronoun": "Type the Czech pronoun:",
+    "contextNoun": "pre-filled noun: {{noun}}",
     "hintMessage": "💡 The correct letter is highlighted. Click it to continue.",
     "words": "Words:",
     "points": "Points:",
@@ -57,7 +60,7 @@
     },
     "germanPossessiveTranslation1": {
       "title": "German – Translate Quickly",
-      "description": "Fast translation of possessive phrases with the German keyboard and hidden answer length"
+      "description": "Translate the possessive pronoun both ways: Czech ↔ German"
     }
   },
   "symbols": {
