@@ -79,6 +79,10 @@ export default function App() {
   const autoStartTimeoutRef = useRef(null);
   const selectedTestSet = getTestSetById(selectedTestSetId);
   const isWorksheetTestSet = selectedTestSet?.mode === 'worksheet';
+  const worksheetInstructionKeys = selectedTestSet?.worksheetInstructionKeys ?? [
+    'instructions.worksheetCheck',
+    'instructions.worksheetRetry'
+  ];
 
   const initializeQueue = (entries) => {
     // Fisher-Yates shuffle
@@ -429,9 +433,9 @@ export default function App() {
             <p>{t(isWorksheetTestSet ? 'instructions.worksheetIntro' : 'instructions.typeInstruction')}</p>
             {isWorksheetTestSet ? (
               <>
-                <p>{t('instructions.worksheetCheck')}</p>
-                <p>{t('instructions.worksheetEnding')}</p>
-                <p>{t('instructions.worksheetRetry')}</p>
+                {worksheetInstructionKeys.map((instructionKey) => (
+                  <p key={instructionKey}>{t(instructionKey)}</p>
+                ))}
               </>
             ) : (
               <>
@@ -658,4 +662,3 @@ export default function App() {
     </div>
   );
 }
-

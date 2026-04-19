@@ -15,9 +15,10 @@
     "incorrectDot": "⚪ Gray dot = mistakes made, word repeats",
     "hintDot": "🔴 Red dot = hint used, word repeats",
     "hintMechanic": "❌ Wrong letters turn red. After 3 mistakes, a hint appears (red dot recorded).",
-    "worksheetIntro": "📝 The new German quiz uses its own worksheet layout with possessive forms and endings.",
+    "worksheetIntro": "📝 Some German quizzes use their own worksheet layout split into sections.",
     "worksheetCheck": "✅ Fill in a whole section and then check it with one button.",
     "worksheetEnding": "🔤 In “Ergänze -e” tasks you choose whether to add “e” or nothing.",
+    "worksheetTranslate": "✍️ In translation tasks you enter the full phrase exactly as required.",
     "worksheetRetry": "🔁 Wrong answers are highlighted so you can fix them right away."
   },
   "gameplay": {
@@ -53,6 +54,10 @@
     "germanPossessiveArticles1": {
       "title": "German Possessive Articles",
       "description": "Worksheet practice for mein/dein/sein/ihr/unser/euer based on the provided exercise"
+    },
+    "germanPossessiveTranslation1": {
+      "title": "German – Translate Quickly",
+      "description": "Worksheet practice for fast translation of possessive phrases from the provided exercise"
     }
   },
   "symbols": {
