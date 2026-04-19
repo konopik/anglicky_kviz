@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Check } from 'lucide-react';
 
 const CanvasKeyboard = ({
   qwertyRows,
@@ -8,6 +9,10 @@ const CanvasKeyboard = ({
   isWordComplete,
   onLetterClick,
   expectedLetter,
+  showSubmitKey = false,
+  isSubmitEnabled = false,
+  onSubmit,
+  submitAriaLabel = 'Submit',
   className = ''
 }) => {
   const canvasRef = useRef(null);
@@ -280,21 +285,43 @@ const CanvasKeyboard = ({
 
   return (
     <div
-      ref={containerRef}
       className={`w-full bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 ${className}`}
-      style={{ height: 'clamp(200px, 42vw, 240px)' }}
     >
-      <canvas
-        ref={canvasRef}
-        onPointerDown={handleCanvasPress}
-        style={{ 
-          display: 'block', 
-          width: '100%', 
-          height: '100%',
-          cursor: isWordComplete ? 'not-allowed' : 'pointer',
-          touchAction: 'manipulation',
-        }}
-      />
+      <div
+        ref={containerRef}
+        className="w-full"
+        style={{ height: showSubmitKey ? 'clamp(180px, 38vw, 220px)' : 'clamp(200px, 42vw, 240px)' }}
+      >
+        <canvas
+          ref={canvasRef}
+          onPointerDown={handleCanvasPress}
+          style={{ 
+            display: 'block', 
+            width: '100%', 
+            height: '100%',
+            cursor: isWordComplete ? 'not-allowed' : 'pointer',
+            touchAction: 'manipulation',
+          }}
+        />
+      </div>
+      {showSubmitKey && (
+        <div className="px-2 pb-2 pt-1 sm:px-4 sm:pb-4">
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={!isSubmitEnabled || isWordComplete}
+            aria-label={submitAriaLabel}
+            title={submitAriaLabel}
+            className={`flex w-full items-center justify-center rounded-xl border px-4 py-3 transition-colors ${
+              isSubmitEnabled && !isWordComplete
+                ? 'border-emerald-500 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:border-emerald-500 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60'
+                : 'border-slate-300 bg-slate-100 text-slate-400 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-600'
+            }`}
+          >
+            <Check className="h-6 w-6" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

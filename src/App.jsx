@@ -72,6 +72,7 @@ export default function App() {
   const [currentWordIsPerfect, setCurrentWordIsPerfect] = useState(true);
   const [currentWordUsedHint, setCurrentWordUsedHint] = useState(false);
   const [positionStatuses, setPositionStatuses] = useState([]);
+  const [isWordLocked, setIsWordLocked] = useState(false);
   const [showAutoStartMessage, setShowAutoStartMessage] = useState(false);
   const [worksheetSessionKey, setWorksheetSessionKey] = useState(0);
 
@@ -129,6 +130,7 @@ export default function App() {
       setCurrentWordIsPerfect(true);
       setCurrentWordUsedHint(false);
       setPositionStatuses([]);
+      setIsWordLocked(false);
       setShowAutoStartMessage(false);
       return;
     }
@@ -162,6 +164,7 @@ export default function App() {
     setCurrentWordIsPerfect(true);
     setCurrentWordUsedHint(false);
     setPositionStatuses([]);
+    setIsWordLocked(false);
     setShowAutoStartMessage(false);
   };
 
@@ -175,6 +178,7 @@ export default function App() {
     setCurrentWordIsPerfect(true);
     setCurrentWordUsedHint(false);
     setPositionStatuses(initialWordState.positionStatuses);
+    setIsWordLocked(false);
   };
 
   const playErrorSound = () => {
@@ -204,9 +208,11 @@ export default function App() {
   };
 
   const handleLetterClick = (letter) => {
-    if (!currentEntry) return;
-    
+    if (!currentEntry || isWordLocked) return;
+     
     const expectedAnswer = normalizeAnswerText(currentEntry.answer);
+    if (currentPosition >= expectedAnswer.length) return;
+
     const expectedLetter = expectedAnswer[currentPosition];
     const isCorrect = letter === expectedLetter;
 
@@ -240,7 +246,8 @@ export default function App() {
         setCurrentWordUsedHint(true);
       }
 
-      if (nextPosition >= expectedAnswer.length) {
+      if (nextPosition >= expectedAnswer.length && !selectedTestSet?.hideAnswerLength) {
+        setIsWordLocked(true);
         completeWord(usedHintThisTurn);
       }
     } else {
@@ -262,7 +269,7 @@ export default function App() {
   };
 
   const handleHintedLetterClick = () => {
-    if (hintedLetter === null || !currentEntry) return;
+    if (hintedLetter === null || !currentEntry || isWordLocked) return;
 
     const expectedAnswer = normalizeAnswerText(currentEntry.answer);
     const newTyped = [...typedLetters];
@@ -283,9 +290,24 @@ export default function App() {
     setCurrentWordIsPerfect(false);
     setCurrentWordUsedHint(true);
 
-    if (nextPosition >= expectedAnswer.length) {
+    if (nextPosition >= expectedAnswer.length && !selectedTestSet?.hideAnswerLength) {
+      setIsWordLocked(true);
       completeWord(true);
     }
+  };
+
+  const handleWordSubmit = () => {
+    if (!currentEntry || isWordLocked || !selectedTestSet?.hideAnswerLength) {
+      return;
+    }
+
+    const expectedAnswer = normalizeAnswerText(currentEntry.answer);
+    if (currentPosition < expectedAnswer.length) {
+      return;
+    }
+
+    setIsWordLocked(true);
+    completeWord(false);
   };
 
   const completeWord = (usedHint) => {
@@ -518,7 +540,8 @@ export default function App() {
   if (!currentEntry || !selectedTestSet) return null;
 
   const expectedAnswer = normalizeAnswerText(currentEntry.answer);
-  const isWordComplete = currentPosition >= expectedAnswer.length;
+  const isAwaitingManualSubmit = selectedTestSet.hideAnswerLength && currentPosition >= expectedAnswer.length && !isWordLocked;
+  const isWordComplete = isWordLocked;
   const displayedAnswerCharacters = (
     selectedTestSet.hideAnswerLength
       ? expectedAnswer.split('').slice(0, Math.min(expectedAnswer.length, currentPosition + 1))
@@ -667,7 +690,11 @@ export default function App() {
             hintedLetter={hintedLetter}
             isWordComplete={isWordComplete}
             onLetterClick={handleLetterClick}
-            expectedLetter={isWordComplete ? null : expectedAnswer[currentPosition]}
+            expectedLetter={isWordComplete || isAwaitingManualSubmit ? null : expectedAnswer[currentPosition]}
+            showSubmitKey={selectedTestSet.hideAnswerLength}
+            isSubmitEnabled={isAwaitingManualSubmit}
+            onSubmit={handleWordSubmit}
+            submitAriaLabel={t('gameplay.submitAnswer')}
             className="p-0 shadow-none border-none"
           />
         </div>
