@@ -182,7 +182,7 @@ const CanvasKeyboard = ({
         alpha = 0.5;
       }
 
-      if (isSubmitKey) {
+      if (isSubmitKey && !isDisabled) {
         bgColor = isDarkMode ? '#064e3b' : '#dcfce7';
         borderColor = isDarkMode ? '#10b981' : '#22c55e';
         textColor = isDarkMode ? '#d1fae5' : '#047857';
