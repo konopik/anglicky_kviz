@@ -21,9 +21,6 @@ const CanvasKeyboard = ({
   const containerRef = useRef(null);
   const keyPositionsRef = useRef([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const keyboardRows = showSubmitKey
-    ? [...qwertyRows.slice(0, -1), [...qwertyRows[qwertyRows.length - 1], SUBMIT_KEY]]
-    : qwertyRows;
 
   // Detect dark mode
   useEffect(() => {
@@ -104,6 +101,9 @@ const CanvasKeyboard = ({
 
     const width = containerWidth;
     const height = containerHeight;
+    const keyboardRows = showSubmitKey
+      ? [...qwertyRows.slice(0, -1), [...qwertyRows[qwertyRows.length - 1], SUBMIT_KEY]]
+      : qwertyRows;
 
     // Responsive layout parameters - reduce margins on mobile
     const isMobile = width < 600;
@@ -145,7 +145,7 @@ const CanvasKeyboard = ({
     }
 
     return positions;
-  }, [keyboardRows]);
+  }, [qwertyRows, showSubmitKey]);
 
   // Draw the keyboard on canvas
   const drawKeyboard = useCallback((canvas, positions, containerWidth, containerHeight) => {
@@ -314,6 +314,7 @@ const CanvasKeyboard = ({
         <canvas
           ref={canvasRef}
           onPointerDown={handleCanvasPress}
+          aria-label={showSubmitKey ? `${submitAriaLabel} key available on keyboard` : 'On-screen keyboard'}
           style={{ 
             display: 'block', 
             width: '100%', 
