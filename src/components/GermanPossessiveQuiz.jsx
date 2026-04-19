@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle, ChevronRight, House, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { getGermanPossessiveQuizItemCount } from '../data/germanPossessiveQuiz';
 
 const normalizeTextAnswer = (value) => value.trim().toLocaleLowerCase('de-DE');
 
@@ -9,20 +8,35 @@ const createInitialAnswers = (section) => section.items.map(() => (
   section.type === 'ending' ? null : ''
 ));
 
+const createInitialSectionState = (section) => ({
+  answers: createInitialAnswers(section),
+  submitted: false,
+  passed: false,
+  countedMistakes: new Set()
+});
+
 export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
   const { t } = useTranslation();
   const [sectionIndex, setSectionIndex] = useState(0);
-  const [answers, setAnswers] = useState(() => createInitialAnswers(testSet.sections[0]));
-  const [submitted, setSubmitted] = useState(false);
-  const [sectionPassed, setSectionPassed] = useState(false);
+  const [sectionStates, setSectionStates] = useState(() => (
+    testSet.sections.map((section) => createInitialSectionState(section))
+  ));
   const [finished, setFinished] = useState(false);
   const [mistakeCount, setMistakeCount] = useState(0);
   const [completedItems, setCompletedItems] = useState(0);
-  const [countedMistakes, setCountedMistakes] = useState(() => new Set());
 
   const currentSection = testSet.sections[sectionIndex];
+  const currentSectionState = sectionStates[sectionIndex];
   const totalSections = testSet.sections.length;
-  const totalItems = getGermanPossessiveQuizItemCount();
+  const totalItems = useMemo(
+    () => testSet.sections.reduce((total, section) => total + section.items.length, 0),
+    [testSet.sections]
+  );
+  const answers = currentSectionState.answers;
+  const submitted = currentSectionState.submitted;
+  const sectionPassed = currentSectionState.passed;
+  const countedMistakes = currentSectionState.countedMistakes;
+  const allSectionsPassed = sectionStates.every((sectionState) => sectionState.passed);
 
   const evaluation = useMemo(() => currentSection.items.map((item, index) => {
     const rawAnswer = answers[index] ?? '';
@@ -47,25 +61,49 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
   const incorrectCount = evaluation.filter((item) => !item.isCorrect).length;
 
   const goToSection = (nextIndex) => {
+    if (nextIndex < 0 || nextIndex >= totalSections) {
+      return;
+    }
+
     setSectionIndex(nextIndex);
-    setAnswers(createInitialAnswers(testSet.sections[nextIndex]));
-    setSubmitted(false);
-    setSectionPassed(false);
-    setCountedMistakes(new Set());
+  };
+
+  const goToNextIncompleteSection = () => {
+    const nextIncompleteIndex = sectionStates.findIndex((sectionState, index) => (
+      index > sectionIndex && !sectionState.passed
+    ));
+
+    if (nextIncompleteIndex !== -1) {
+      goToSection(nextIncompleteIndex);
+      return;
+    }
+
+    const firstIncompleteIndex = sectionStates.findIndex((sectionState) => !sectionState.passed);
+
+    if (firstIncompleteIndex !== -1) {
+      goToSection(firstIncompleteIndex);
+      return;
+    }
+
+    setFinished(true);
   };
 
   const handleCheck = () => {
     if (sectionPassed) {
-      if (sectionIndex === totalSections - 1) {
+      if (allSectionsPassed) {
         setFinished(true);
         return;
       }
 
-      goToSection(sectionIndex + 1);
+      goToNextIncompleteSection();
       return;
     }
 
-    setSubmitted(true);
+    setSectionStates((current) => current.map((sectionState, index) => (
+      index === sectionIndex
+        ? { ...sectionState, submitted: true }
+        : sectionState
+    )));
 
     if (!allFilled) {
       return;
@@ -82,29 +120,63 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
 
       if (newIncorrectIndexes.length > 0) {
         setMistakeCount((current) => current + newIncorrectIndexes.length);
-        setCountedMistakes((current) => {
-          const next = new Set(current);
-          newIncorrectIndexes.forEach((index) => next.add(index));
-          return next;
-        });
+        setSectionStates((current) => current.map((sectionState, index) => {
+          if (index !== sectionIndex) {
+            return sectionState;
+          }
+
+          const nextMistakes = new Set(sectionState.countedMistakes);
+          newIncorrectIndexes.forEach((itemIndex) => nextMistakes.add(itemIndex));
+
+          return {
+            ...sectionState,
+            countedMistakes: nextMistakes
+          };
+        }));
       }
 
       return;
     }
 
-    setSectionPassed(true);
+    setSectionStates((current) => current.map((sectionState, index) => (
+      index === sectionIndex
+        ? { ...sectionState, passed: true, submitted: true }
+        : sectionState
+    )));
     setCompletedItems((current) => current + currentSection.items.length);
   };
 
   const handleEndingSelect = (index, value) => {
-    setAnswers((current) => current.map((answer, currentIndex) => (
-      currentIndex === index ? value : answer
+    if (sectionPassed) {
+      return;
+    }
+
+    setSectionStates((current) => current.map((sectionState, currentSectionIndex) => (
+      currentSectionIndex === sectionIndex
+        ? {
+          ...sectionState,
+          answers: sectionState.answers.map((answer, currentIndex) => (
+            currentIndex === index ? value : answer
+          ))
+        }
+        : sectionState
     )));
   };
 
   const handleArticleChange = (index, value) => {
-    setAnswers((current) => current.map((answer, currentIndex) => (
-      currentIndex === index ? value : answer
+    if (sectionPassed) {
+      return;
+    }
+
+    setSectionStates((current) => current.map((sectionState, currentSectionIndex) => (
+      currentSectionIndex === sectionIndex
+        ? {
+          ...sectionState,
+          answers: sectionState.answers.map((answer, currentIndex) => (
+            currentIndex === index ? value : answer
+          ))
+        }
+        : sectionState
     )));
   };
 
@@ -198,6 +270,39 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
             </div>
           </div>
 
+          <div className="mt-6">
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              {t('worksheet.sectionJumpLabel')}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {testSet.sections.map((section, index) => {
+                const isCurrent = index === sectionIndex;
+                const isPassed = sectionStates[index].passed;
+
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    disabled={isCurrent}
+                    onClick={() => goToSection(index)}
+                    aria-current={isCurrent ? 'step' : undefined}
+                    title={t('worksheet.sectionCounter', { current: index + 1, total: totalSections })}
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${
+                      isCurrent
+                        ? 'border-blue-500 bg-blue-100 text-blue-700 dark:border-blue-500 dark:bg-blue-900/40 dark:text-blue-300'
+                        : isPassed
+                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300'
+                          : 'border-slate-300 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500'
+                    }`}
+                  >
+                    {isPassed && <CheckCircle className="h-4 w-4" />}
+                    <span>{index + 1}. {section.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="mt-6 grid gap-3">
             {currentSection.items.map((item, index) => {
               const isCorrect = submitted && evaluation[index]?.isCorrect;
@@ -227,22 +332,24 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
                         <button
                           type="button"
                           onClick={() => handleEndingSelect(index, '')}
+                          disabled={sectionPassed}
                           className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
                             answers[index] === ''
                               ? 'border-blue-500 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500'
                               : 'border-slate-300 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500'
-                          }`}
+                          } ${sectionPassed ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                           {t('worksheet.optionNoEnding')}
                         </button>
                         <button
                           type="button"
                           onClick={() => handleEndingSelect(index, 'e')}
+                          disabled={sectionPassed}
                           className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
                             answers[index] === 'e'
                               ? 'border-blue-500 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 dark:border-blue-500'
                               : 'border-slate-300 bg-white text-slate-700 hover:border-blue-300 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500'
-                          }`}
+                          } ${sectionPassed ? 'cursor-not-allowed opacity-80' : ''}`}
                         >
                           {t('worksheet.optionAddEnding')}
                         </button>
@@ -267,7 +374,8 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
                         onChange={(event) => handleArticleChange(index, event.target.value)}
                         placeholder={t('worksheet.articlePlaceholder')}
                         autoComplete="off"
-                        className="w-full lg:w-48 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-3 text-base font-semibold text-slate-900 dark:text-white outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+                        disabled={sectionPassed}
+                        className={`w-full lg:w-48 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-3 text-base font-semibold text-slate-900 dark:text-white outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900 ${sectionPassed ? 'cursor-not-allowed opacity-80' : ''}`}
                       />
                     </label>
                   )}
@@ -301,7 +409,7 @@ export default function GermanPossessiveQuiz({ testSet, onHome, onRestart }) {
             >
               {sectionPassed ? (
                 <>
-                  {sectionIndex === totalSections - 1 ? t('worksheet.finishButton') : t('worksheet.nextSectionButton')}
+                  {allSectionsPassed ? t('worksheet.finishButton') : t('worksheet.nextSectionButton')}
                   <ChevronRight className="w-5 h-5" />
                 </>
               ) : (

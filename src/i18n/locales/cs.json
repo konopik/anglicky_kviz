@@ -63,6 +63,7 @@
     "progressLabel": "Pracovní list",
     "sectionCounter": "Sekce {{current}} z {{total}}",
     "sectionBadge": "Sekce {{current}} / {{total}}",
+    "sectionJumpLabel": "Přeskočit na sekci",
     "optionNoEnding": "bez -e",
     "optionAddEnding": "+e",
     "articlePlaceholder": "doplň tvar",
