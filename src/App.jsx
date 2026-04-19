@@ -248,7 +248,7 @@ export default function App() {
 
       if (nextPosition >= expectedAnswer.length && !selectedTestSet?.hideAnswerLength) {
         setIsWordLocked(true);
-        completeWord(usedHintThisTurn);
+        completeWord({ usedHint: usedHintThisTurn });
       }
     } else {
       if (!wrongLetters.has(letter)) {
@@ -292,7 +292,7 @@ export default function App() {
 
     if (nextPosition >= expectedAnswer.length && !selectedTestSet?.hideAnswerLength) {
       setIsWordLocked(true);
-      completeWord(true);
+      completeWord({ usedHint: true });
     }
   };
 
@@ -302,17 +302,15 @@ export default function App() {
     }
 
     const expectedAnswer = normalizeAnswerText(currentEntry.answer);
-    if (currentPosition < expectedAnswer.length) {
-      return;
-    }
-
     setIsWordLocked(true);
-    completeWord(false);
+    completeWord({
+      forceRetry: currentPosition < expectedAnswer.length
+    });
   };
 
-  const completeWord = (usedHint) => {
+  const completeWord = ({ usedHint = false, forceRetry = false } = {}) => {
     const hintWasUsed = currentWordUsedHint || usedHint;
-    const wasPerfect = currentWordIsPerfect && !hintWasUsed && mistakesOnPosition === 0;
+    const wasPerfect = !forceRetry && currentWordIsPerfect && !hintWasUsed && mistakesOnPosition === 0;
     let symbolType = 'perfect';
     let points = 0;
 
@@ -320,7 +318,7 @@ export default function App() {
       // No points on retry, but still record the symbol
       if (hintWasUsed) {
         symbolType = 'hintUsed';
-      } else if (mistakesOnPosition > 0 || !currentWordIsPerfect) {
+      } else if (forceRetry || mistakesOnPosition > 0 || !currentWordIsPerfect) {
         symbolType = 'incorrect';
       } else {
         symbolType = 'perfect';
@@ -331,7 +329,7 @@ export default function App() {
       if (hintWasUsed) {
         symbolType = 'hintUsed';
         points = 0;
-      } else if (mistakesOnPosition > 0 || !currentWordIsPerfect) {
+      } else if (forceRetry || mistakesOnPosition > 0 || !currentWordIsPerfect) {
         symbolType = 'incorrect';
         points = 1;
       } else {
@@ -540,11 +538,17 @@ export default function App() {
   if (!currentEntry || !selectedTestSet) return null;
 
   const expectedAnswer = normalizeAnswerText(currentEntry.answer);
-  const isAwaitingManualSubmit = selectedTestSet.hideAnswerLength && currentPosition >= expectedAnswer.length && !isWordLocked;
   const isWordComplete = isWordLocked;
+  const hiddenAnswerVisibleLength = selectedTestSet.hideAnswerLength
+    ? (
+      mistakesOnPosition > 0 || hintedLetter !== null || currentPosition === 0
+        ? currentPosition + 1
+        : currentPosition
+    )
+    : expectedAnswer.length;
   const displayedAnswerCharacters = (
     selectedTestSet.hideAnswerLength
-      ? expectedAnswer.split('').slice(0, Math.min(expectedAnswer.length, currentPosition + 1))
+      ? expectedAnswer.split('').slice(0, Math.min(expectedAnswer.length, hiddenAnswerVisibleLength))
       : expectedAnswer.split('')
   );
   const currentKeyboardRows = currentEntry.keyboardRows ?? selectedTestSet.keyboardRows;
@@ -690,9 +694,9 @@ export default function App() {
             hintedLetter={hintedLetter}
             isWordComplete={isWordComplete}
             onLetterClick={handleLetterClick}
-            expectedLetter={isWordComplete || isAwaitingManualSubmit ? null : expectedAnswer[currentPosition]}
+            expectedLetter={isWordComplete || currentPosition >= expectedAnswer.length ? null : expectedAnswer[currentPosition]}
             showSubmitKey={selectedTestSet.hideAnswerLength}
-            isSubmitEnabled={isAwaitingManualSubmit}
+            isSubmitEnabled={!isWordComplete}
             onSubmit={handleWordSubmit}
             submitAriaLabel={t('gameplay.submitAnswer')}
             className="p-0 shadow-none border-none"
