@@ -15,9 +15,10 @@
     "incorrectDot": "⚪ Šedá tečka = udělaná chyba, slovo se později zopakuje",
     "hintDot": "🔴 Červená tečka = použitá nápověda, slovo se později zopakuje",
     "hintMechanic": "❌ Chybně zadaná písmena se označí červeně. Po 3 chybách se zobrazí nápověda (a započítá se červený odznak).",
-    "worksheetIntro": "📝 Nový německý kvíz má vlastní pracovní list s doplňováním tvarů a koncovek.",
+    "worksheetIntro": "📝 Některé německé kvízy mají vlastní pracovní list rozdělený do sekcí.",
     "worksheetCheck": "✅ Vyplň celou sekci a potom ji zkontroluj jedním tlačítkem.",
     "worksheetEnding": "🔤 U úloh „Ergänze -e“ vybíráš, jestli se doplní „e“, nebo nic.",
+    "worksheetTranslate": "✍️ V překladových úlohách doplňuješ celý výraz přesně podle zadání.",
     "worksheetRetry": "🔁 Chybné odpovědi se zvýrazní a můžeš je hned opravit."
   },
   "gameplay": {
@@ -53,6 +54,10 @@
     "germanPossessiveArticles1": {
       "title": "Němčina – přivlastňovací členy",
       "description": "Pracovní list na mein/dein/sein/ihr/unser/euer podle přiloženého zadání"
+    },
+    "germanPossessiveTranslation1": {
+      "title": "Němčina – překládej rychle",
+      "description": "Pracovní list na rychlý překlad přivlastňovacích spojení z přiloženého cvičení"
     }
   },
   "symbols": {

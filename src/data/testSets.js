@@ -1,4 +1,5 @@
 import { GERMAN_POSSESSIVE_QUIZ } from './germanPossessiveQuiz';
+import { GERMAN_POSSESSIVE_TRANSLATION_QUIZ } from './germanPossessiveTranslationQuiz';
 
 export const ENGLISH_KEYBOARD_ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -108,7 +109,24 @@ export const TEST_SETS = [
     titleKey: 'testSets.germanPossessiveArticles1.title',
     descriptionKey: 'testSets.germanPossessiveArticles1.description',
     mode: 'worksheet',
+    worksheetInstructionKeys: [
+      'instructions.worksheetCheck',
+      'instructions.worksheetEnding',
+      'instructions.worksheetRetry'
+    ],
     sections: GERMAN_POSSESSIVE_QUIZ.sections
+  },
+  {
+    id: 'german-possessive-translation-1',
+    titleKey: 'testSets.germanPossessiveTranslation1.title',
+    descriptionKey: 'testSets.germanPossessiveTranslation1.description',
+    mode: 'worksheet',
+    worksheetInstructionKeys: [
+      'instructions.worksheetCheck',
+      'instructions.worksheetTranslate',
+      'instructions.worksheetRetry'
+    ],
+    sections: GERMAN_POSSESSIVE_TRANSLATION_QUIZ.sections
   }
 ];
 
