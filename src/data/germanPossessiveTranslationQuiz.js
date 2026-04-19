@@ -1,14 +1,17 @@
 export const GERMAN_POSSESSIVE_TRANSLATION_QUIZ = {
   entries: [
-    { prompt: 'můj', answer: 'mein' },
-    { prompt: 'moje', answer: 'meine' },
-    { prompt: 'tvůj', answer: 'dein' },
-    { prompt: 'tvoje', answer: 'deine' },
-    { prompt: 'jeho', answer: 'sein' },
-    { prompt: 'její', answer: 'ihr' },
-    { prompt: 'náš', answer: 'unser' },
-    { prompt: 'naše', answer: 'unsere' },
-    { prompt: 'váš', answer: 'euer' },
-    { prompt: 'vaše', answer: 'eure' }
+    { prompt: 'moje maminka', answer: 'meine Mutter' },
+    { prompt: 'jeho maminka', answer: 'seine Mutter' },
+    { prompt: 'naše sestra', answer: 'unsere Schwester' },
+    { prompt: 'její sestra', answer: 'ihre Schwester' },
+    { prompt: 'můj bratr', answer: 'mein Bruder' },
+    { prompt: 'tvůj bratr', answer: 'dein Bruder' },
+    { prompt: 'vaše dítě', answer: 'euer Kind' },
+    { prompt: 'naše dítě', answer: 'unser Kind' },
+    { prompt: 'její miminko', answer: 'ihr Baby' },
+    { prompt: 'jeho koníček', answer: 'sein Hobby' },
+    { prompt: 'můj den', answer: 'mein Tag' },
+    { prompt: 'náš den', answer: 'unser Tag' },
+    { prompt: 'její kytara', answer: 'ihre Gitarre' }
   ]
 };
