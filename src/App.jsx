@@ -519,6 +519,11 @@ export default function App() {
 
   const expectedAnswer = normalizeAnswerText(currentEntry.answer);
   const isWordComplete = currentPosition >= expectedAnswer.length;
+  const displayedAnswerCharacters = (
+    selectedTestSet.hideAnswerLength
+      ? expectedAnswer.split('').slice(0, Math.min(expectedAnswer.length, currentPosition + 1))
+      : expectedAnswer.split('')
+  );
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300">
@@ -596,7 +601,7 @@ export default function App() {
           <h2 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-6 break-words">{currentEntry.prompt}</h2>
           
           <div className="mb-8 flex flex-wrap justify-center gap-1.5 md:gap-2.5">
-            {expectedAnswer.split('').map((letter, idx) => {
+            {displayedAnswerCharacters.map((letter, idx) => {
               if (letter === ' ') {
                 return <div key={`space-${idx}`} className="h-[2.75rem] w-3 md:h-[3.1rem] md:w-5" aria-hidden="true" />;
               }
