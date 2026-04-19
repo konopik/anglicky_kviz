@@ -524,6 +524,8 @@ export default function App() {
       ? expectedAnswer.split('').slice(0, Math.min(expectedAnswer.length, currentPosition + 1))
       : expectedAnswer.split('')
   );
+  const currentKeyboardRows = currentEntry.keyboardRows ?? selectedTestSet.keyboardRows;
+  const currentPromptLabelKey = currentEntry.promptLabelKey ?? selectedTestSet.promptLabelKey;
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 flex flex-col font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300">
@@ -597,10 +599,10 @@ export default function App() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 pt-3 pb-4 md:px-6 md:pt-4 md:pb-6 flex flex-col justify-start">
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 md:p-10 mb-4 transition-colors duration-300 text-center">
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t(selectedTestSet.promptLabelKey)}</p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{t(currentPromptLabelKey)}</p>
           <h2 className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-6 break-words">{currentEntry.prompt}</h2>
           
-          <div className="mb-8 flex flex-wrap justify-center gap-1.5 md:gap-2.5">
+          <div className="mb-8 flex flex-wrap justify-center items-center gap-1.5 md:gap-2.5">
             {displayedAnswerCharacters.map((letter, idx) => {
               if (letter === ' ') {
                 return <div key={`space-${idx}`} className="h-[2.75rem] w-3 md:h-[3.1rem] md:w-5" aria-hidden="true" />;
@@ -640,6 +642,14 @@ export default function App() {
                 </div>
               );
             })}
+            {currentEntry.context && (
+              <span
+                className="ml-2 text-3xl md:text-4xl font-bold text-slate-400 dark:text-slate-500"
+                aria-label={t('gameplay.contextNoun', { noun: currentEntry.context })}
+              >
+                {currentEntry.context}
+              </span>
+            )}
           </div>
 
           {hintedLetter && (
@@ -651,7 +661,7 @@ export default function App() {
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-2 sm:p-4 md:p-8 transition-colors duration-300 mb-4">
           <CanvasKeyboard
-            qwertyRows={selectedTestSet.keyboardRows}
+            qwertyRows={currentKeyboardRows}
             typedLetters={typedLetters}
             wrongLetters={wrongLetters}
             hintedLetter={hintedLetter}
