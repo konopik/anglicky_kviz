@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 
-const SUBMIT_KEY = '__SUBMIT__';
+export const SUBMIT_KEY = '__SUBMIT__';
 const KEYBOARD_HEIGHT = 'clamp(200px, 42vw, 240px)';
 
 const CanvasKeyboard = ({
@@ -12,8 +12,6 @@ const CanvasKeyboard = ({
   onLetterClick,
   expectedLetter,
   showSubmitKey = false,
-  isSubmitEnabled = false,
-  onSubmit,
   submitAriaLabel = 'Submit',
   className = ''
 }) => {
@@ -167,10 +165,10 @@ const CanvasKeyboard = ({
     // Draw each key
     for (const pos of positions) {
       const isSubmitKey = pos.letter === SUBMIT_KEY;
-      const isTyped = !isSubmitKey && typedLetters.includes(pos.letter);
-      const isWrong = !isSubmitKey && wrongLetters.has(pos.letter);
-      const isHinted = !isSubmitKey && hintedLetter === pos.letter;
-      const isDisabled = isSubmitKey ? !isSubmitEnabled || isWordComplete : isWordComplete;
+      const isTyped = typedLetters.includes(pos.letter);
+      const isWrong = wrongLetters.has(pos.letter);
+      const isHinted = hintedLetter === pos.letter;
+      const isDisabled = isWordComplete;
 
       // Determine background color
       let bgColor = isDarkMode ? '#0f172a' : '#f8fafc'; // slate-950 / slate-50
@@ -186,7 +184,9 @@ const CanvasKeyboard = ({
         bgColor = isDarkMode ? '#064e3b' : '#dcfce7';
         borderColor = isDarkMode ? '#10b981' : '#22c55e';
         textColor = isDarkMode ? '#d1fae5' : '#047857';
-      } else if (isWrong) {
+      }
+
+      if (isWrong) {
         bgColor = colors.wrong;
         borderColor = isDarkMode ? '#dc2626' : '#fca5a5'; // red-600 / red-300
       } else if (isHinted) {
@@ -220,7 +220,7 @@ const CanvasKeyboard = ({
 
       ctx.globalAlpha = 1;
     }
-  }, [hintedLetter, isDarkMode, isSubmitEnabled, isWordComplete, typedLetters, wrongLetters]);
+  }, [hintedLetter, isDarkMode, isWordComplete, typedLetters, wrongLetters]);
 
   const getInteractionPoint = (event) => {
     if ('clientX' in event && 'clientY' in event) {
@@ -247,13 +247,6 @@ const CanvasKeyboard = ({
     const clickY = point.clientY - rect.top;
 
     const letter = getLetterFromClick(clickX, clickY, keyPositionsRef.current, expectedLetter);
-    if (letter === SUBMIT_KEY) {
-      if (isSubmitEnabled) {
-        onSubmit?.();
-      }
-      return;
-    }
-
     if (letter) {
       onLetterClick(letter);
     }
