@@ -28,6 +28,7 @@
     "typePromptCzechPronoun": "Napiš české zájmeno:",
     "contextNoun": "předvyplněné podstatné jméno: {{noun}}",
     "hintMessage": "💡 Správné písmeno je zvýrazněné. Klikni na něj a pokračuj.",
+    "submitAnswer": "Potvrdit odpověď",
     "words": "Zbývá:",
     "points": "Body:",
     "symbols": "Odznaky:",

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Star, CheckCircle, RotateCcw, House, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import CanvasKeyboard from './components/CanvasKeyboard';
+import CanvasKeyboard, { SUBMIT_KEY } from './components/CanvasKeyboard';
 import GermanPossessiveQuiz from './components/GermanPossessiveQuiz';
 import { TEST_SETS, getTestSetById } from './data/testSets';
 
@@ -15,7 +15,14 @@ const normalizeAnswerText = (text) => Array.from(text).map((character) => {
   return character.toLocaleUpperCase('de-DE');
 }).join('');
 
-const createInitialWordState = (entry) => {
+const getExpectedInputSequence = (entry, includeSubmitKey = false) => {
+  const answerCharacters = Array.from(normalizeAnswerText(entry?.answer ?? ''));
+  return includeSubmitKey ? [...answerCharacters, SUBMIT_KEY] : answerCharacters;
+};
+
+const getDisplayToken = (token) => (token === SUBMIT_KEY ? '✓' : token);
+
+const createInitialWordState = (entry, includeSubmitKey = false) => {
   if (!entry) {
     return {
       typedLetters: [],
@@ -24,12 +31,12 @@ const createInitialWordState = (entry) => {
     };
   }
 
-  const expectedAnswer = normalizeAnswerText(entry.answer);
-  const typedLetters = Array(expectedAnswer.length).fill('');
-  const positionStatuses = Array(expectedAnswer.length).fill(null);
+  const expectedSequence = getExpectedInputSequence(entry, includeSubmitKey);
+  const typedLetters = Array(expectedSequence.length).fill('');
+  const positionStatuses = Array(expectedSequence.length).fill(null);
   let currentPosition = 0;
 
-  while (currentPosition < expectedAnswer.length && expectedAnswer[currentPosition] === ' ') {
+  while (currentPosition < expectedSequence.length && expectedSequence[currentPosition] === ' ') {
     typedLetters[currentPosition] = ' ';
     positionStatuses[currentPosition] = 'space';
     currentPosition += 1;
@@ -54,6 +61,14 @@ const advancePastSpaces = (expectedAnswer, typedLetters, positionStatuses, start
   return nextPosition;
 };
 
+const getHiddenAnswerVisibleLength = ({ currentPosition, mistakesOnPosition, hintedLetter }) => {
+  if (mistakesOnPosition > 0 || hintedLetter !== null || currentPosition === 0) {
+    return currentPosition + 1;
+  }
+
+  return currentPosition;
+};
+
 export default function App() {
   const { t, i18n } = useTranslation();
   const [gameState, setGameState] = useState('start');
@@ -72,6 +87,8 @@ export default function App() {
   const [currentWordIsPerfect, setCurrentWordIsPerfect] = useState(true);
   const [currentWordUsedHint, setCurrentWordUsedHint] = useState(false);
   const [positionStatuses, setPositionStatuses] = useState([]);
+  const [isWordLocked, setIsWordLocked] = useState(false);
+  const [wrongAttemptValue, setWrongAttemptValue] = useState(null);
   const [showAutoStartMessage, setShowAutoStartMessage] = useState(false);
   const [worksheetSessionKey, setWorksheetSessionKey] = useState(0);
 
@@ -88,7 +105,6 @@ export default function App() {
     // Fisher-Yates shuffle
     const shuffled = [...entries].map(entry => ({ entry, isRetry: false }));
     for (let i = shuffled.length - 1; i > 0; i--) {
-      // eslint-disable-next-line react-hooks/purity
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
@@ -129,6 +145,7 @@ export default function App() {
       setCurrentWordIsPerfect(true);
       setCurrentWordUsedHint(false);
       setPositionStatuses([]);
+      setIsWordLocked(false);
       setShowAutoStartMessage(false);
       return;
     }
@@ -140,7 +157,7 @@ export default function App() {
     setGameState('playing');
     setScoreSequence([]);
     setTotalScore(0);
-    resetWordState(initialQueue[0].entry);
+    resetWordState(initialQueue[0].entry, testSetToStart.hideAnswerLength);
   };
 
   const goHome = () => {
@@ -162,11 +179,13 @@ export default function App() {
     setCurrentWordIsPerfect(true);
     setCurrentWordUsedHint(false);
     setPositionStatuses([]);
+    setIsWordLocked(false);
+    setWrongAttemptValue(null);
     setShowAutoStartMessage(false);
   };
 
-  const resetWordState = (entry) => {
-    const initialWordState = createInitialWordState(entry);
+  const resetWordState = (entry, includeSubmitKey = selectedTestSet?.hideAnswerLength) => {
+    const initialWordState = createInitialWordState(entry, includeSubmitKey);
     setTypedLetters(initialWordState.typedLetters);
     setCurrentPosition(initialWordState.currentPosition);
     setMistakesOnPosition(0);
@@ -175,6 +194,8 @@ export default function App() {
     setCurrentWordIsPerfect(true);
     setCurrentWordUsedHint(false);
     setPositionStatuses(initialWordState.positionStatuses);
+    setIsWordLocked(false);
+    setWrongAttemptValue(null);
   };
 
   const playErrorSound = () => {
@@ -204,10 +225,12 @@ export default function App() {
   };
 
   const handleLetterClick = (letter) => {
-    if (!currentEntry) return;
-    
-    const expectedAnswer = normalizeAnswerText(currentEntry.answer);
-    const expectedLetter = expectedAnswer[currentPosition];
+    if (!currentEntry || isWordLocked) return;
+     
+    const expectedSequence = getExpectedInputSequence(currentEntry, selectedTestSet?.hideAnswerLength);
+    if (currentPosition >= expectedSequence.length) return;
+
+    const expectedLetter = expectedSequence[currentPosition];
     const isCorrect = letter === expectedLetter;
 
     if (isCorrect) {
@@ -226,7 +249,7 @@ export default function App() {
       const newStatuses = [...positionStatuses];
       newStatuses[currentPosition] = posStatus;
 
-      const nextPosition = advancePastSpaces(expectedAnswer, newTyped, newStatuses, currentPosition + 1);
+      const nextPosition = advancePastSpaces(expectedSequence, newTyped, newStatuses, currentPosition + 1);
 
       setTypedLetters(newTyped);
       setPositionStatuses(newStatuses);
@@ -235,15 +258,18 @@ export default function App() {
       setMistakesOnPosition(0);
       setWrongLetters(new Set());
       setHintedLetter(null);
+      setWrongAttemptValue(null);
       if (usedHintThisTurn) {
         setCurrentWordIsPerfect(false);
         setCurrentWordUsedHint(true);
       }
 
-      if (nextPosition >= expectedAnswer.length) {
-        completeWord(usedHintThisTurn);
+      if (nextPosition >= expectedSequence.length) {
+        setIsWordLocked(true);
+        completeWord({ usedHint: usedHintThisTurn });
       }
     } else {
+      setWrongAttemptValue(letter);
       if (!wrongLetters.has(letter)) {
         playErrorSound();
         setCurrentWordIsPerfect(false);
@@ -262,16 +288,16 @@ export default function App() {
   };
 
   const handleHintedLetterClick = () => {
-    if (hintedLetter === null || !currentEntry) return;
+    if (hintedLetter === null || !currentEntry || isWordLocked) return;
 
-    const expectedAnswer = normalizeAnswerText(currentEntry.answer);
+    const expectedSequence = getExpectedInputSequence(currentEntry, selectedTestSet?.hideAnswerLength);
     const newTyped = [...typedLetters];
     newTyped[currentPosition] = hintedLetter;
     
     const newStatuses = [...positionStatuses];
     newStatuses[currentPosition] = 'hint';
 
-    const nextPosition = advancePastSpaces(expectedAnswer, newTyped, newStatuses, currentPosition + 1);
+    const nextPosition = advancePastSpaces(expectedSequence, newTyped, newStatuses, currentPosition + 1);
 
     setTypedLetters(newTyped);
     setPositionStatuses(newStatuses);
@@ -280,17 +306,19 @@ export default function App() {
     setMistakesOnPosition(0);
     setWrongLetters(new Set());
     setHintedLetter(null);
+    setWrongAttemptValue(null);
     setCurrentWordIsPerfect(false);
     setCurrentWordUsedHint(true);
 
-    if (nextPosition >= expectedAnswer.length) {
-      completeWord(true);
+    if (nextPosition >= expectedSequence.length) {
+      setIsWordLocked(true);
+      completeWord({ usedHint: true });
     }
   };
 
-  const completeWord = (usedHint) => {
+  const completeWord = ({ usedHint = false, forceRetry = false } = {}) => {
     const hintWasUsed = currentWordUsedHint || usedHint;
-    const wasPerfect = currentWordIsPerfect && !hintWasUsed && mistakesOnPosition === 0;
+    const wasPerfect = !forceRetry && currentWordIsPerfect && !hintWasUsed && mistakesOnPosition === 0;
     let symbolType = 'perfect';
     let points = 0;
 
@@ -298,7 +326,7 @@ export default function App() {
       // No points on retry, but still record the symbol
       if (hintWasUsed) {
         symbolType = 'hintUsed';
-      } else if (mistakesOnPosition > 0 || !currentWordIsPerfect) {
+      } else if (forceRetry || mistakesOnPosition > 0 || !currentWordIsPerfect) {
         symbolType = 'incorrect';
       } else {
         symbolType = 'perfect';
@@ -309,7 +337,7 @@ export default function App() {
       if (hintWasUsed) {
         symbolType = 'hintUsed';
         points = 0;
-      } else if (mistakesOnPosition > 0 || !currentWordIsPerfect) {
+      } else if (forceRetry || mistakesOnPosition > 0 || !currentWordIsPerfect) {
         symbolType = 'incorrect';
         points = 1;
       } else {
@@ -338,7 +366,6 @@ export default function App() {
       if (newQueue.length <= minDelay) {
         newQueue.push(retryEntry);
       } else {
-        // eslint-disable-next-line react-hooks/purity
         const insertPos = minDelay + Math.floor(Math.random() * (newQueue.length - minDelay + 1));
         newQueue.splice(insertPos, 0, retryEntry);
       }
@@ -354,7 +381,7 @@ export default function App() {
     setQueue(newQueue);
     setCurrentEntry(newQueue[0].entry);
     setIsCurrentWordRetry(newQueue[0].isRetry);
-    resetWordState(newQueue[0].entry);
+    resetWordState(newQueue[0].entry, selectedTestSet?.hideAnswerLength);
   };
 
 
@@ -517,12 +544,15 @@ export default function App() {
 
   if (!currentEntry || !selectedTestSet) return null;
 
-  const expectedAnswer = normalizeAnswerText(currentEntry.answer);
-  const isWordComplete = currentPosition >= expectedAnswer.length;
+  const expectedInputSequence = getExpectedInputSequence(currentEntry, selectedTestSet.hideAnswerLength);
+  const isWordComplete = isWordLocked;
+  const hiddenAnswerVisibleLength = selectedTestSet.hideAnswerLength
+    ? getHiddenAnswerVisibleLength({ currentPosition, mistakesOnPosition, hintedLetter })
+    : expectedInputSequence.length;
   const displayedAnswerCharacters = (
     selectedTestSet.hideAnswerLength
-      ? expectedAnswer.split('').slice(0, Math.min(expectedAnswer.length, currentPosition + 1))
-      : expectedAnswer.split('')
+      ? expectedInputSequence.slice(0, Math.min(expectedInputSequence.length, hiddenAnswerVisibleLength))
+      : expectedInputSequence
   );
   const currentKeyboardRows = currentEntry.keyboardRows ?? selectedTestSet.keyboardRows;
   const currentPromptLabelKey = currentEntry.promptLabelKey ?? selectedTestSet.promptLabelKey;
@@ -638,7 +668,13 @@ export default function App() {
                   className={`flex h-[2.75rem] w-[2.75rem] items-center justify-center rounded-lg border-2 text-base font-bold transition-all md:h-[3.1rem] md:w-[3.1rem] md:text-lg ${bgClass}`}
                   onClick={() => isHinted && handleHintedLetterClick()}
                 >
-                  {isTyped ? typedLetters[idx] : isHinted ? letter : ''}
+                  {isTyped
+                    ? getDisplayToken(typedLetters[idx])
+                    : wrongOnThis && wrongAttemptValue
+                      ? getDisplayToken(wrongAttemptValue)
+                      : isHinted
+                        ? getDisplayToken(letter)
+                        : ''}
                 </div>
               );
             })}
@@ -667,7 +703,9 @@ export default function App() {
             hintedLetter={hintedLetter}
             isWordComplete={isWordComplete}
             onLetterClick={handleLetterClick}
-            expectedLetter={isWordComplete ? null : expectedAnswer[currentPosition]}
+            expectedLetter={isWordComplete || currentPosition >= expectedInputSequence.length ? null : expectedInputSequence[currentPosition]}
+            showSubmitKey={selectedTestSet.hideAnswerLength}
+            submitAriaLabel={t('gameplay.submitAnswer')}
             className="p-0 shadow-none border-none"
           />
         </div>

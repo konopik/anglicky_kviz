@@ -1,5 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 
+export const SUBMIT_KEY = '__SUBMIT__';
+const KEYBOARD_HEIGHT = 'clamp(200px, 42vw, 240px)';
+
 const CanvasKeyboard = ({
   qwertyRows,
   typedLetters,
@@ -8,6 +11,8 @@ const CanvasKeyboard = ({
   isWordComplete,
   onLetterClick,
   expectedLetter,
+  showSubmitKey = false,
+  submitAriaLabel = 'Submit',
   className = ''
 }) => {
   const canvasRef = useRef(null);
@@ -94,15 +99,18 @@ const CanvasKeyboard = ({
 
     const width = containerWidth;
     const height = containerHeight;
+    const keyboardRows = showSubmitKey
+      ? [...qwertyRows.slice(0, -1), [...qwertyRows[qwertyRows.length - 1], SUBMIT_KEY]]
+      : qwertyRows;
 
     // Responsive layout parameters - reduce margins on mobile
     const isMobile = width < 600;
     const padding = isMobile ? 2 : 8;
     const keyMargin = isMobile ? 2 : 6;
-    const totalRows = qwertyRows.length;
+    const totalRows = keyboardRows.length;
 
     // Key sizing based on longest row (maintains standard keyboard offset/layout)
-    const maxKeysInRow = Math.max(...qwertyRows.map(row => row.length));
+    const maxKeysInRow = Math.max(...keyboardRows.map(row => row.length));
     const availableWidth = width - padding * 2 - keyMargin * (maxKeysInRow - 1);
     const keyWidth = availableWidth / maxKeysInRow;
     const keyHeight = (height - padding * 2 - keyMargin * (totalRows - 1)) / totalRows;
@@ -111,8 +119,8 @@ const CanvasKeyboard = ({
     const positions = [];
     let keyId = 0;
 
-    for (let rowIdx = 0; rowIdx < qwertyRows.length; rowIdx++) {
-      const row = qwertyRows[rowIdx];
+    for (let rowIdx = 0; rowIdx < keyboardRows.length; rowIdx++) {
+      const row = keyboardRows[rowIdx];
       const rowOffset = ((maxKeysInRow - row.length) * keyStep) / 2;
       const rowStartX = padding + rowOffset;
 
@@ -135,7 +143,7 @@ const CanvasKeyboard = ({
     }
 
     return positions;
-  }, [qwertyRows]);
+  }, [qwertyRows, showSubmitKey]);
 
   // Draw the keyboard on canvas
   const drawKeyboard = useCallback((canvas, positions, containerWidth, containerHeight) => {
@@ -156,6 +164,7 @@ const CanvasKeyboard = ({
 
     // Draw each key
     for (const pos of positions) {
+      const isSubmitKey = pos.letter === SUBMIT_KEY;
       const isTyped = typedLetters.includes(pos.letter);
       const isWrong = wrongLetters.has(pos.letter);
       const isHinted = hintedLetter === pos.letter;
@@ -169,7 +178,15 @@ const CanvasKeyboard = ({
 
       if (isDisabled) {
         alpha = 0.5;
-      } else if (isWrong) {
+      }
+
+      if (isSubmitKey && !isDisabled) {
+        bgColor = isDarkMode ? '#064e3b' : '#dcfce7';
+        borderColor = isDarkMode ? '#10b981' : '#22c55e';
+        textColor = isDarkMode ? '#d1fae5' : '#047857';
+      }
+
+      if (isWrong) {
         bgColor = colors.wrong;
         borderColor = isDarkMode ? '#dc2626' : '#fca5a5'; // red-600 / red-300
       } else if (isHinted) {
@@ -199,7 +216,7 @@ const CanvasKeyboard = ({
       ctx.font = `bold ${Math.round(pos.height * 0.4)}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(pos.letter, pos.centerX, pos.centerY);
+      ctx.fillText(isSubmitKey ? '✓' : pos.letter, pos.centerX, pos.centerY);
 
       ctx.globalAlpha = 1;
     }
@@ -280,21 +297,26 @@ const CanvasKeyboard = ({
 
   return (
     <div
-      ref={containerRef}
       className={`w-full bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 ${className}`}
-      style={{ height: 'clamp(200px, 42vw, 240px)' }}
     >
-      <canvas
-        ref={canvasRef}
-        onPointerDown={handleCanvasPress}
-        style={{ 
-          display: 'block', 
-          width: '100%', 
-          height: '100%',
-          cursor: isWordComplete ? 'not-allowed' : 'pointer',
-          touchAction: 'manipulation',
-        }}
-      />
+      <div
+        ref={containerRef}
+        className="w-full"
+        style={{ height: KEYBOARD_HEIGHT }}
+      >
+        <canvas
+          ref={canvasRef}
+          onPointerDown={handleCanvasPress}
+          aria-label={showSubmitKey ? `${submitAriaLabel} key available on keyboard` : 'On-screen keyboard'}
+          style={{ 
+            display: 'block', 
+            width: '100%', 
+            height: '100%',
+            cursor: isWordComplete ? 'not-allowed' : 'pointer',
+            touchAction: 'manipulation',
+          }}
+        />
+      </div>
     </div>
   );
 };

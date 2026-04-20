@@ -28,6 +28,7 @@
     "typePromptCzechPronoun": "Type the Czech pronoun:",
     "contextNoun": "pre-filled noun: {{noun}}",
     "hintMessage": "💡 The correct letter is highlighted. Click it to continue.",
+    "submitAnswer": "Submit answer",
     "words": "Words:",
     "points": "Points:",
     "symbols": "Symbols:",
