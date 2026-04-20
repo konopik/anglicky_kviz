@@ -105,7 +105,6 @@ export default function App() {
     // Fisher-Yates shuffle
     const shuffled = [...entries].map(entry => ({ entry, isRetry: false }));
     for (let i = shuffled.length - 1; i > 0; i--) {
-      // eslint-disable-next-line react-hooks/purity
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
@@ -367,7 +366,6 @@ export default function App() {
       if (newQueue.length <= minDelay) {
         newQueue.push(retryEntry);
       } else {
-        // eslint-disable-next-line react-hooks/purity
         const insertPos = minDelay + Math.floor(Math.random() * (newQueue.length - minDelay + 1));
         newQueue.splice(insertPos, 0, retryEntry);
       }
