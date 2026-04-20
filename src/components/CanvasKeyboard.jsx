@@ -20,6 +20,18 @@ const CanvasKeyboard = ({
   const keyPositionsRef = useRef([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Refs to keep latest prop values for the global key handler without re-attaching listeners.
+  const onLetterClickRef = useRef(onLetterClick);
+  const isWordCompleteRef = useRef(isWordComplete);
+  const qwertyRowsRef = useRef(qwertyRows);
+  const showSubmitKeyRef = useRef(showSubmitKey);
+
+  // Keep refs updated on every render so the single attached event listener reads latest values.
+  onLetterClickRef.current = onLetterClick;
+  isWordCompleteRef.current = isWordComplete;
+  qwertyRowsRef.current = qwertyRows;
+  showSubmitKeyRef.current = showSubmitKey;
+
   // Detect dark mode
   useEffect(() => {
     const checkDarkMode = () => {
@@ -32,6 +44,77 @@ const CanvasKeyboard = ({
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     
     return () => observer.disconnect();
+  }, []);
+
+  // Add global physical keyboard support:
+  // - Listens on window for keydown so we do not need to focus any hidden input (which would
+  //   trigger the mobile virtual keyboard on iOS/Android).
+  // - Avoids handling when a real input/textarea/contentEditable has focus so we don't interfere.
+  // - Ignores modifier combinations (Ctrl/Alt/Meta) and function/non-printable keys.
+  // - Maps printable keys to uppercase tokens and maps Enter -> SUBMIT_KEY (only if available).
+  // - Prevents default for handled keys to stop scrolling/form-submission side-effects.
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // If the event was already handled elsewhere, skip.
+      if (event.defaultPrevented) return;
+      const onLetter = onLetterClickRef.current;
+      if (!onLetter) return;
+
+      // Do not handle when an input/textarea or contentEditable is focused — respect native inputs
+      // and avoid triggering system virtual keyboard on mobile via hidden focus tricks.
+      const active = document.activeElement;
+      if (active) {
+        const tag = active.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable === true) return;
+      }
+
+      // Ignore modifier combos — allow Shift (used for uppercase) but block Ctrl/Alt/Meta.
+      if (event.ctrlKey || event.altKey || event.metaKey) return;
+
+      const key = event.key;
+      if (!key) return;
+
+      // Handle Enter -> submit token, but only when the submit key is available in this keyboard.
+      if (key === 'Enter') {
+        const canSubmit =
+          showSubmitKeyRef.current ||
+          (Array.isArray(qwertyRowsRef.current) &&
+            qwertyRowsRef.current.some((row) => Array.isArray(row) && row.includes(SUBMIT_KEY)));
+
+        if (canSubmit && !isWordCompleteRef.current) {
+          event.preventDefault();
+          onLetter(SUBMIT_KEY);
+        }
+        return;
+      }
+
+      // Handle Space -> literal space token; prevent default to avoid page scroll.
+      if (key === ' ' || key === 'Spacebar') {
+        if (!isWordCompleteRef.current) {
+          event.preventDefault();
+          onLetter(' ');
+        }
+        return;
+      }
+
+      // Ignore non-printable keys (Arrow keys, F1-F12, Escape, etc.).
+      // Printable single characters have key.length === 1.
+      if (key.length !== 1) return;
+
+      // Map to uppercase token (consistent with on-screen key labels).
+      const token = key.toUpperCase();
+
+      if (!isWordCompleteRef.current) {
+        // Prevent default to avoid unexpected browser side-effects (navigation, shortcuts).
+        event.preventDefault();
+        onLetter(token);
+      }
+    };
+
+    // Attach once at mount; refs ensure we always read latest prop values without re-attaching.
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Intentionally empty deps: handler reads live values via refs, so one attachment is enough.
   }, []);
 
   // Colors matching Tailwind design - light and dark modes
