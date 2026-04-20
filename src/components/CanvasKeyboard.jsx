@@ -20,6 +20,18 @@ const CanvasKeyboard = ({
   const keyPositionsRef = useRef([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // Refs to keep latest prop values for the global key handler without re-attaching the listener.
+  const onLetterClickRef = useRef(onLetterClick);
+  const isWordCompleteRef = useRef(isWordComplete);
+  const qwertyRowsRef = useRef(qwertyRows);
+  const showSubmitKeyRef = useRef(showSubmitKey);
+
+  // Keep refs updated on every render so the single attached event listener always reads latest values.
+  onLetterClickRef.current = onLetterClick;
+  isWordCompleteRef.current = isWordComplete;
+  qwertyRowsRef.current = qwertyRows;
+  showSubmitKeyRef.current = showSubmitKey;
+
   // Detect dark mode
   useEffect(() => {
     const checkDarkMode = () => {
@@ -32,6 +44,77 @@ const CanvasKeyboard = ({
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     
     return () => observer.disconnect();
+  }, []);
+
+  // Global physical keyboard support:
+  // We attach the listener to `window` rather than focusing a hidden <input> because focusing any
+  // input element on mobile triggers the system virtual keyboard.  By listening at the window level
+  // we capture hardware-keyboard events without causing the virtual keyboard to appear.
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // If the event was already handled upstream, skip.
+      if (event.defaultPrevented) return;
+      const onLetter = onLetterClickRef.current;
+      if (!onLetter) return;
+
+      // Do not intercept when a real input/textarea/contentEditable has focus – respect native inputs.
+      const active = document.activeElement;
+      if (active) {
+        const tag = active.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || active.isContentEditable === true) return;
+      }
+
+      // Ignore modifier combos (Ctrl/Alt/Meta).  Shift is intentionally allowed so that the OS
+      // can still produce the correct character; we normalise to uppercase ourselves below.
+      if (event.ctrlKey || event.altKey || event.metaKey) return;
+
+      const key = event.key;
+      if (!key) return;
+
+      // Enter -> SUBMIT_KEY, but only when submit is actually available on this keyboard.
+      if (key === 'Enter') {
+        const canSubmit =
+          showSubmitKeyRef.current ||
+          (Array.isArray(qwertyRowsRef.current) &&
+            qwertyRowsRef.current.some((row) => Array.isArray(row) && row.includes(SUBMIT_KEY)));
+
+        if (canSubmit) {
+          // Always prevent default for Enter when the keyboard handles it, even if the word is
+          // already complete, to avoid unintentional form submissions or page navigation.
+          event.preventDefault();
+          if (!isWordCompleteRef.current) {
+            onLetter(SUBMIT_KEY);
+          }
+        }
+        return;
+      }
+
+      // Space -> literal space token; prevent default so the page does not scroll.
+      if (key === ' ' || key === 'Spacebar') {
+        if (!isWordCompleteRef.current) {
+          event.preventDefault();
+          onLetter(' ');
+        }
+        return;
+      }
+
+      // Ignore non-printable / function keys – printable keys always have length === 1.
+      if (key.length !== 1) return;
+
+      // Normalise to uppercase to match the token format used by the rest of the keyboard.
+      const token = key.toUpperCase();
+
+      if (!isWordCompleteRef.current) {
+        // Prevent default browser behaviour for handled keys (e.g. unexpected navigation).
+        event.preventDefault();
+        onLetter(token);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
+    // Remove listener on unmount to avoid memory leaks and duplicate handling.
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // No dependencies: the handler reads all live values via refs, so we only attach once.
   }, []);
 
   // Colors matching Tailwind design - light and dark modes
