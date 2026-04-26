@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useState, useCallback } from 'react';
 
 export const SUBMIT_KEY = '__SUBMIT__';
 const KEYBOARD_HEIGHT = 'clamp(200px, 42vw, 240px)';
@@ -26,11 +26,13 @@ const CanvasKeyboard = ({
   const qwertyRowsRef = useRef(qwertyRows);
   const showSubmitKeyRef = useRef(showSubmitKey);
 
-  // Keep refs updated on every render so the single attached event listener always reads latest values.
-  onLetterClickRef.current = onLetterClick;
-  isWordCompleteRef.current = isWordComplete;
-  qwertyRowsRef.current = qwertyRows;
-  showSubmitKeyRef.current = showSubmitKey;
+  // Keep refs updated after render so the single attached event listener always reads latest values.
+  useLayoutEffect(() => {
+    onLetterClickRef.current = onLetterClick;
+    isWordCompleteRef.current = isWordComplete;
+    qwertyRowsRef.current = qwertyRows;
+    showSubmitKeyRef.current = showSubmitKey;
+  }, [onLetterClick, isWordComplete, qwertyRows, showSubmitKey]);
 
   // Detect dark mode
   useEffect(() => {
