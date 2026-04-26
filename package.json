@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.0",
+    "@vercel/analytics": "^2.0.1",
     "autoprefixer": "^10.4.24",
     "i18next": "^25.8.14",
     "lucide-react": "^0.575.0",
