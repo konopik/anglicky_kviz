@@ -78,6 +78,22 @@ export const TEST_SETS = [
     ]
   },
   {
+    id: 'english-irregular-selected-1',
+    titleKey: 'testSets.englishIrregularSelected1.title',
+    descriptionKey: 'testSets.englishIrregularSelected1.description',
+    promptLabelKey: 'gameplay.typePromptPast',
+    keyboardRows: ENGLISH_KEYBOARD_ROWS,
+    hideAnswerLength: true,
+    entries: [
+      { prompt: 'bring', answer: 'brought' },
+      { prompt: 'hear', answer: 'heard' },
+      { prompt: 'lose', answer: 'lost' },
+      { prompt: 'keep', answer: 'kept' },
+      { prompt: 'choose', answer: 'chose' },
+      { prompt: 'teach', answer: 'taught' }
+    ]
+  },
+  {
     id: 'german-adjectives-1',
     titleKey: 'testSets.germanAdjectives1.title',
     descriptionKey: 'testSets.germanAdjectives1.description',

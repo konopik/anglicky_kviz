@@ -26,11 +26,13 @@ const CanvasKeyboard = ({
   const qwertyRowsRef = useRef(qwertyRows);
   const showSubmitKeyRef = useRef(showSubmitKey);
 
-  // Keep refs updated on every render so the single attached event listener always reads latest values.
-  onLetterClickRef.current = onLetterClick;
-  isWordCompleteRef.current = isWordComplete;
-  qwertyRowsRef.current = qwertyRows;
-  showSubmitKeyRef.current = showSubmitKey;
+  // Keep refs updated after render so the single attached event listener always reads latest values.
+  useEffect(() => {
+    onLetterClickRef.current = onLetterClick;
+    isWordCompleteRef.current = isWordComplete;
+    qwertyRowsRef.current = qwertyRows;
+    showSubmitKeyRef.current = showSubmitKey;
+  }, [onLetterClick, isWordComplete, qwertyRows, showSubmitKey]);
 
   // Detect dark mode
   useEffect(() => {
