@@ -90,7 +90,8 @@ export const TEST_SETS = [
       { prompt: 'lose', answer: 'lost' },
       { prompt: 'keep', answer: 'kept' },
       { prompt: 'choose', answer: 'chose' },
-      { prompt: 'teach', answer: 'taught' }
+      { prompt: 'teach', answer: 'taught' },
+      { prompt: 'read', answer: 'read' },
     ]
   },
   {
