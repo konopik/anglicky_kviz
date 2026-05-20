@@ -23,6 +23,8 @@
   },
   "gameplay": {
     "typePromptPast": "Napiš minulý tvar slovesa:",
+    "typePromptSimplePast": "Napiš jednoduchý minulý tvar slovesa:",
+    "typePromptPastParticiple": "Napiš příčestí minulé slovesa:",
     "typePromptGerman": "Napiš německé slovo pro:",
     "typePromptGermanPronoun": "Napiš německé zájmeno:",
     "typePromptCzechPronoun": "Napiš české zájmeno:",
@@ -52,8 +54,8 @@
       "description": "Smíšená slovesa včetně víceslovných tvarů jako wake up..."
     },
     "englishIrregularSelected1": {
-      "title": "Angličtina – vybraná nepravidelná slovesa",
-      "description": "Vybraná nepravidelná slovesa se skrytou délkou odpovědi"
+      "title": "Angličtina – nepravidelná slovesa ve 2 krocích",
+      "description": "Nejdřív napiš minulý tvar a pak příčestí minulé. "
     },
     "germanAdjectives1": {
       "title": "Němčina – přídavná jména",

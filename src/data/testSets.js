@@ -1,5 +1,6 @@
 import { GERMAN_POSSESSIVE_QUIZ } from './germanPossessiveQuiz';
 import { GERMAN_POSSESSIVE_TRANSLATION_QUIZ } from './germanPossessiveTranslationQuiz';
+import { ENGLISH_IRREGULAR_SELECTED_QUIZ } from './englishIrregularSelectedQuiz';
 
 export const ENGLISH_KEYBOARD_ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -81,18 +82,9 @@ export const TEST_SETS = [
     id: 'english-irregular-selected-1',
     titleKey: 'testSets.englishIrregularSelected1.title',
     descriptionKey: 'testSets.englishIrregularSelected1.description',
-    promptLabelKey: 'gameplay.typePromptPast',
     keyboardRows: ENGLISH_KEYBOARD_ROWS,
     hideAnswerLength: true,
-    entries: [
-      { prompt: 'bring', answer: 'brought' },
-      { prompt: 'hear', answer: 'heard' },
-      { prompt: 'lose', answer: 'lost' },
-      { prompt: 'keep', answer: 'kept' },
-      { prompt: 'choose', answer: 'chose' },
-      { prompt: 'teach', answer: 'taught' },
-      { prompt: 'read', answer: 'read' },
-    ]
+    ...ENGLISH_IRREGULAR_SELECTED_QUIZ
   },
   {
     id: 'german-adjectives-1',

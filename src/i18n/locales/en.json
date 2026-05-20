@@ -23,6 +23,8 @@
   },
   "gameplay": {
     "typePromptPast": "Type the past form of:",
+    "typePromptSimplePast": "Type the simple past form of:",
+    "typePromptPastParticiple": "Type the past participle form of:",
     "typePromptGerman": "Type the German word for:",
     "typePromptGermanPronoun": "Type the German pronoun:",
     "typePromptCzechPronoun": "Type the Czech pronoun:",
@@ -52,8 +54,8 @@
       "description": "Mixed verbs including phrasal forms like wake up → woke up"
     },
     "englishIrregularSelected1": {
-      "title": "English irregular, selected words",
-      "description": "Selected irregular verbs with hidden answer length"
+      "title": "English irregular verbs — two-step",
+      "description": "Type the simple past first, then the past participle. The keyboard hides the answer length."
     },
     "germanAdjectives1": {
       "title": "German Adjectives",

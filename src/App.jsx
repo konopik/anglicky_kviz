@@ -3,6 +3,7 @@ import { Star, CheckCircle, RotateCcw, House, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CanvasKeyboard, { SUBMIT_KEY } from './components/CanvasKeyboard';
 import GermanPossessiveQuiz from './components/GermanPossessiveQuiz';
+import EnglishIrregularSelectedQuiz from './components/EnglishIrregularSelectedQuiz';
 import { TEST_SETS, getTestSetById } from './data/testSets';
 
 const MISTAKES_FOR_HINT = 3;
@@ -78,6 +79,7 @@ export default function App() {
   const [isCurrentWordRetry, setIsCurrentWordRetry] = useState(false);
   const [scoreSequence, setScoreSequence] = useState([]);
   const [totalScore, setTotalScore] = useState(0);
+  const [irregularQuizSessionKey, setIrregularQuizSessionKey] = useState(0);
   
   const [typedLetters, setTypedLetters] = useState([]);
   const [currentPosition, setCurrentPosition] = useState(0);
@@ -96,6 +98,7 @@ export default function App() {
   const autoStartTimeoutRef = useRef(null);
   const selectedTestSet = getTestSetById(selectedTestSetId);
   const isWorksheetTestSet = selectedTestSet?.mode === 'worksheet';
+  const isTwoStageQuizTestSet = selectedTestSet?.mode === 'two-stage-quiz';
   const worksheetInstructionKeys = selectedTestSet?.worksheetInstructionKeys ?? [
     'instructions.worksheetCheck',
     'instructions.worksheetRetry'
@@ -150,6 +153,28 @@ export default function App() {
       return;
     }
 
+    if (testSetToStart.mode === 'two-stage-quiz') {
+      setGameState('playing');
+      setIrregularQuizSessionKey((current) => current + 1);
+      setQueue([]);
+      setCurrentEntry(null);
+      setIsCurrentWordRetry(false);
+      setScoreSequence([]);
+      setTotalScore(0);
+      setMistakesOnPosition(0);
+      setTypedLetters([]);
+      setCurrentPosition(0);
+      setWrongLetters(new Set());
+      setHintedLetter(null);
+      setCurrentWordIsPerfect(true);
+      setCurrentWordUsedHint(false);
+      setPositionStatuses([]);
+      setIsWordLocked(false);
+      setWrongAttemptValue(null);
+      setShowAutoStartMessage(false);
+      return;
+    }
+
     const initialQueue = initializeQueue(testSetToStart.entries);
     setQueue(initialQueue);
     setCurrentEntry(initialQueue[0].entry);
@@ -182,6 +207,7 @@ export default function App() {
     setIsWordLocked(false);
     setWrongAttemptValue(null);
     setShowAutoStartMessage(false);
+    setIrregularQuizSessionKey(0);
   };
 
   const resetWordState = (entry, includeSubmitKey = selectedTestSet?.hideAnswerLength) => {
@@ -482,6 +508,17 @@ export default function App() {
     return (
       <GermanPossessiveQuiz
         key={`${selectedTestSetId}-${worksheetSessionKey}`}
+        testSet={selectedTestSet}
+        onHome={goHome}
+        onRestart={() => startGame(selectedTestSetId)}
+      />
+    );
+  }
+
+  if (gameState === 'playing' && isTwoStageQuizTestSet && selectedTestSet) {
+    return (
+      <EnglishIrregularSelectedQuiz
+        key={`${selectedTestSetId}-${irregularQuizSessionKey}`}
         testSet={selectedTestSet}
         onHome={goHome}
         onRestart={() => startGame(selectedTestSetId)}
