@@ -33,7 +33,7 @@ const createQueueItems = (entries) => entries.map((entry) => ({ entry, isRetry: 
 const clampNumber = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const getMaxSkipCount = (wordCount, totalEntries) => Math.min(
-  Math.floor(wordCount * 0.3),
+  Math.floor(wordCount * 0.5),
   Math.max(0, totalEntries - wordCount)
 );
 
