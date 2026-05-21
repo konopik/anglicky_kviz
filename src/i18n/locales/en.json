@@ -74,6 +74,18 @@
     "sequence": "Acquired Badges",
     "odznak": "badge"
   },
+  "irregularSetup": {
+    "title": "Set up this round",
+    "wordCountLabel": "Words to test",
+    "wordCountHelp": "Choose 1–{{max}} words. A random set is picked every time.",
+    "skipCountLabel": "Allowed skips",
+    "skipCountHelp": "Maximum {{max}} for this word count. Each skip uses a random replacement word.",
+    "startButton": "Start round",
+    "skips": "Skips:",
+    "skipButton": "Skip word",
+    "errorWordsTitle": "Words with errors",
+    "noErrorWords": "No errors this round."
+  },
   "worksheet": {
     "progressLabel": "Worksheet",
     "sectionCounter": "Section {{current}} of {{total}}",

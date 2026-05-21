@@ -74,6 +74,18 @@
     "sequence": "Získané odznaky",
     "odznak": "odznak"
   },
+  "irregularSetup": {
+    "title": "Nastavení kola",
+    "wordCountLabel": "Počet slov v testu",
+    "wordCountHelp": "Vyber 1–{{max}} slov. Pokaždé se vybere náhodná sada.",
+    "skipCountLabel": "Povolená přeskočení",
+    "skipCountHelp": "Maximum pro tento počet slov je {{max}}. Za každé přeskočení se doplní náhodné náhradní slovo.",
+    "startButton": "Spustit kolo",
+    "skips": "Přeskočení:",
+    "skipButton": "Přeskočit slovo",
+    "errorWordsTitle": "Slova s chybou",
+    "noErrorWords": "V tomhle kole nebyla žádná chyba."
+  },
   "worksheet": {
     "progressLabel": "Pracovní list",
     "sectionCounter": "Sekce {{current}} z {{total}}",

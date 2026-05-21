@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, CheckCircle, House, RotateCcw, Star } from 'lucide-react';
+import { Check, CheckCircle, House, RotateCcw, Star, Play } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import CanvasKeyboard, { SUBMIT_KEY } from './CanvasKeyboard';
 
 const MISTAKES_FOR_HINT = 3;
 const RETRY_DELAY_MS = 600;
 const STAGE_TRANSITION_DELAY_MS = 450;
+const DEFAULT_WORD_COUNT = 10;
+const DEFAULT_SKIP_COUNT = 2;
 
 const normalizeAnswerText = (text) => Array.from(text ?? '').map((character) => {
   if (character === 'ß') {
@@ -16,7 +18,7 @@ const normalizeAnswerText = (text) => Array.from(text ?? '').map((character) => 
 }).join('');
 
 const shuffleEntries = (entries) => {
-  const shuffled = [...entries].map((entry) => ({ entry, isRetry: false }));
+  const shuffled = [...entries];
 
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
     const randomIndex = Math.floor(Math.random() * (index + 1));
@@ -25,6 +27,17 @@ const shuffleEntries = (entries) => {
 
   return shuffled;
 };
+
+const createQueueItems = (entries) => entries.map((entry) => ({ entry, isRetry: false }));
+
+const clampNumber = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const getMaxSkipCount = (wordCount, totalEntries) => Math.min(
+  Math.floor(wordCount * 0.3),
+  Math.max(0, totalEntries - wordCount)
+);
+
+const getDefaultWordCount = (totalEntries) => Math.min(DEFAULT_WORD_COUNT, totalEntries);
 
 const getAcceptedAnswers = (stage) => {
   if (!stage) {
@@ -79,7 +92,14 @@ const getDisplayToken = (token) => (token === SUBMIT_KEY ? '✓' : token);
 
 export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestart }) {
   const { t } = useTranslation();
-  const [queue, setQueue] = useState(() => shuffleEntries(testSet.entries));
+  const defaultWordCount = getDefaultWordCount(testSet.entries.length);
+  const defaultSkipCount = Math.min(DEFAULT_SKIP_COUNT, getMaxSkipCount(defaultWordCount, testSet.entries.length));
+  const [setupWordCount, setSetupWordCount] = useState(defaultWordCount);
+  const [setupSkipCount, setSetupSkipCount] = useState(defaultSkipCount);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [queue, setQueue] = useState([]);
+  const [replacementEntries, setReplacementEntries] = useState([]);
+  const [skipsRemaining, setSkipsRemaining] = useState(defaultSkipCount);
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [typedValue, setTypedValue] = useState('');
   const [mistakesOnStage, setMistakesOnStage] = useState(0);
@@ -94,6 +114,7 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
   const [wrongAttemptValue, setWrongAttemptValue] = useState(null);
   const [showSubmitFeedback, setShowSubmitFeedback] = useState(false);
   const [finished, setFinished] = useState(false);
+  const [errorEntries, setErrorEntries] = useState([]);
 
   const audioContextRef = useRef(null);
   const transitionTimeoutRef = useRef(null);
@@ -110,6 +131,8 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
   const currentPromptLabelKey = currentStage?.promptLabelKey ?? 'gameplay.typePromptSimplePast';
   const currentKeyboardRows = testSet.keyboardRows;
   const totalWordsRemaining = queue.length;
+  const maxSetupSkipCount = getMaxSkipCount(setupWordCount, testSet.entries.length);
+  const canSkipCurrentWord = skipsRemaining > 0 && replacementEntries.length > 0 && currentQueueItem && !currentQueueItem.isRetry && !isInputLocked;
 
   useEffect(() => () => {
     if (transitionTimeoutRef.current) {
@@ -126,6 +149,30 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
     setShowSubmitFeedback(false);
     setPositionStatuses([]);
     setIsInputLocked(false);
+  };
+
+  const startConfiguredQuiz = () => {
+    const wordCount = clampNumber(Number(setupWordCount) || defaultWordCount, 1, testSet.entries.length);
+    const maxSkipCount = getMaxSkipCount(wordCount, testSet.entries.length);
+    const skipCount = clampNumber(Number(setupSkipCount) || 0, 0, maxSkipCount);
+    const randomizedEntries = shuffleEntries(testSet.entries);
+    const selectedEntries = randomizedEntries.slice(0, wordCount);
+    const availableReplacements = randomizedEntries.slice(wordCount);
+
+    setSetupWordCount(wordCount);
+    setSetupSkipCount(skipCount);
+    setQueue(createQueueItems(selectedEntries));
+    setReplacementEntries(availableReplacements);
+    setSkipsRemaining(skipCount);
+    setCurrentStageIndex(0);
+    setScoreSequence([]);
+    setTotalScore(0);
+    setCurrentVerbIsPerfect(true);
+    setCurrentVerbUsedHint(false);
+    setFinished(false);
+    setErrorEntries([]);
+    resetStageState();
+    setHasStarted(true);
   };
 
   const playErrorSound = () => {
@@ -180,6 +227,14 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
     setCurrentVerbIsPerfect(true);
     setCurrentVerbUsedHint(false);
     resetStageState();
+  };
+
+  const registerErrorEntry = (entry) => {
+    setErrorEntries((previous) => (
+      previous.some((item) => item.prompt === entry.prompt)
+        ? previous
+        : [...previous, entry]
+    ));
   };
 
   const registerCorrectLetter = (letter, { fromHint = false } = {}) => {
@@ -285,6 +340,10 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
       setScoreSequence((previous) => [...previous, symbolType]);
       setTotalScore((previous) => previous + points);
 
+      if (!wasPerfect) {
+        registerErrorEntry(currentEntry);
+      }
+
       transitionTimeoutRef.current = setTimeout(() => {
         goToNextVerb(wasPerfect ? null : currentEntry);
       }, RETRY_DELAY_MS);
@@ -292,6 +351,28 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
     }
 
     registerCorrectLetter(letter);
+  };
+
+  const handleSkipWord = () => {
+    if (!canSkipCurrentWord) {
+      return;
+    }
+
+    const [replacementEntry, ...remainingReplacements] = replacementEntries;
+    const nextQueue = [...queue.slice(1), { entry: replacementEntry, isRetry: false }];
+    const currentWordHasError = !currentVerbIsPerfect || currentVerbUsedHint || mistakesOnStage > 0 || wrongLetters.size > 0;
+
+    if (currentWordHasError) {
+      registerErrorEntry(currentEntry);
+    }
+
+    setReplacementEntries(remainingReplacements);
+    setSkipsRemaining((current) => current - 1);
+    setCurrentStageIndex(0);
+    setCurrentVerbIsPerfect(true);
+    setCurrentVerbUsedHint(false);
+    setQueue(nextQueue);
+    resetStageState();
   };
 
   const handleHintedLetterClick = () => {
@@ -310,6 +391,83 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
 
     onRestart();
   };
+
+  const handleSetupWordCountChange = (event) => {
+    const nextWordCount = clampNumber(Number(event.target.value) || 1, 1, testSet.entries.length);
+    const nextMaxSkipCount = getMaxSkipCount(nextWordCount, testSet.entries.length);
+
+    setSetupWordCount(nextWordCount);
+    setSetupSkipCount((current) => clampNumber(current, 0, nextMaxSkipCount));
+  };
+
+  const handleSetupSkipCountChange = (event) => {
+    setSetupSkipCount(clampNumber(Number(event.target.value) || 0, 0, maxSetupSkipCount));
+  };
+
+  if (!hasStarted) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 font-sans text-slate-800 dark:text-slate-100 transition-colors duration-300">
+        <div className="max-w-xl w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 space-y-6 border border-slate-100 dark:border-slate-700">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">{t(testSet.titleKey)}</p>
+              <h1 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{t('irregularSetup.title')}</h1>
+            </div>
+            <button
+              onClick={onHome}
+              type="button"
+              aria-label={t('app.homeButton')}
+              title={t('app.homeButton')}
+              className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-100 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md dark:border-slate-600 dark:from-slate-700 dark:to-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-300"
+            >
+              <House className="h-5 w-5 transition-transform group-hover:scale-110" />
+            </button>
+          </div>
+
+          <div className="grid gap-4">
+            <label className="block rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('irregularSetup.wordCountLabel')}</span>
+              <input
+                type="number"
+                min="1"
+                max={testSet.entries.length}
+                value={setupWordCount}
+                onChange={handleSetupWordCountChange}
+                className="mt-3 w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-3 text-lg font-bold text-slate-900 dark:text-white outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+              />
+              <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">
+                {t('irregularSetup.wordCountHelp', { max: testSet.entries.length })}
+              </span>
+            </label>
+
+            <label className="block rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t('irregularSetup.skipCountLabel')}</span>
+              <input
+                type="number"
+                min="0"
+                max={maxSetupSkipCount}
+                value={setupSkipCount}
+                onChange={handleSetupSkipCountChange}
+                className="mt-3 w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-3 text-lg font-bold text-slate-900 dark:text-white outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-900"
+              />
+              <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">
+                {t('irregularSetup.skipCountHelp', { max: maxSetupSkipCount })}
+              </span>
+            </label>
+          </div>
+
+          <button
+            type="button"
+            onClick={startConfiguredQuiz}
+            className="w-full bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            <CheckCircle className="w-5 h-5" />
+            {t('irregularSetup.startButton')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (finished) {
     return (
@@ -348,6 +506,24 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
                 ))
               )}
             </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4 text-left">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{t('irregularSetup.errorWordsTitle')}</p>
+            {errorEntries.length === 0 ? (
+              <p className="mt-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">{t('irregularSetup.noErrorWords')}</p>
+            ) : (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {errorEntries.map((entry) => (
+                  <span
+                    key={entry.prompt}
+                    className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-700 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300"
+                  >
+                    {entry.prompt}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -406,6 +582,10 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
                 <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.points')}</span>
                 <span className="text-base font-bold text-blue-600 dark:text-blue-400 sm:text-lg">{totalScore}</span>
               </div>
+              <div className="flex min-w-0 flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-2">
+                <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('irregularSetup.skips')}</span>
+                <span className="text-base font-bold text-blue-600 dark:text-blue-400 sm:text-lg">{skipsRemaining}</span>
+              </div>
               <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3 sm:justify-self-start">
                 <span className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300 sm:text-sm sm:normal-case sm:tracking-normal">{t('gameplay.symbols')}</span>
                 <div className="flex min-w-0 flex-wrap gap-1 sm:max-w-none">
@@ -425,15 +605,30 @@ export default function EnglishIrregularSelectedQuiz({ testSet, onHome, onRestar
             </div>
           </div>
 
-          <button
-            onClick={onHome}
-            type="button"
-            aria-label={t('app.homeButton')}
-            title={t('app.homeButton')}
-            className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-100 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md dark:border-slate-600 dark:from-slate-700 dark:to-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-300"
-          >
-            <House className="h-5 w-5 transition-transform group-hover:scale-110" />
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSkipWord}
+              disabled={!canSkipCurrentWord}
+              aria-label={t('irregularSetup.skipButton')}
+              title={t('irregularSetup.skipButton')}
+              className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-100 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-45 dark:border-slate-600 dark:from-slate-700 dark:to-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-300"
+            >
+              <span className="flex items-center -space-x-1 transition-transform group-hover:scale-110" aria-hidden="true">
+                <Play className="h-4 w-4 fill-current stroke-[2.5]" />
+                <Play className="h-4 w-4 fill-current stroke-[2.5]" />
+              </span>
+            </button>
+            <button
+              onClick={onHome}
+              type="button"
+              aria-label={t('app.homeButton')}
+              title={t('app.homeButton')}
+              className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-100 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 hover:shadow-md dark:border-slate-600 dark:from-slate-700 dark:to-slate-800 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:text-blue-300"
+            >
+              <House className="h-5 w-5 transition-transform group-hover:scale-110" />
+            </button>
+          </div>
         </div>
       </header>
 
