@@ -1,6 +1,7 @@
 import { GERMAN_POSSESSIVE_QUIZ } from './germanPossessiveQuiz';
 import { GERMAN_POSSESSIVE_TRANSLATION_QUIZ } from './germanPossessiveTranslationQuiz';
 import { ENGLISH_IRREGULAR_SELECTED_QUIZ } from './englishIrregularSelectedQuiz';
+import { CZECH_CAPITALIZATION_QUIZ } from './czechCapitalizationQuiz';
 
 export const ENGLISH_KEYBOARD_ROWS = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -132,6 +133,18 @@ export const TEST_SETS = [
     keyboardRows: GERMAN_KEYBOARD_ROWS,
     hideAnswerLength: true,
     entries: GERMAN_POSSESSIVE_TRANSLATION_QUIZ.entries
+  },
+  {
+    id: 'czech-capitalization-1',
+    titleKey: 'testSets.czechCapitalization1.title',
+    descriptionKey: 'testSets.czechCapitalization1.description',
+    instructionKeys: [
+      'instructions.capitalizationTap',
+      'instructions.capitalizationOneChoice',
+      'instructions.capitalizationReview',
+      'instructions.capitalizationRetry'
+    ],
+    ...CZECH_CAPITALIZATION_QUIZ
   }
 ];
 

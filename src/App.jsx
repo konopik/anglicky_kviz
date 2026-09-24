@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import CanvasKeyboard, { SUBMIT_KEY } from './components/CanvasKeyboard';
 import GermanPossessiveQuiz from './components/GermanPossessiveQuiz';
 import EnglishIrregularSelectedQuiz from './components/EnglishIrregularSelectedQuiz';
+import CzechCapitalizationQuiz from './components/CzechCapitalizationQuiz';
 import { TEST_SETS, getTestSetById } from './data/testSets';
 
 const MISTAKES_FOR_HINT = 3;
@@ -93,12 +94,15 @@ export default function App() {
   const [wrongAttemptValue, setWrongAttemptValue] = useState(null);
   const [showAutoStartMessage, setShowAutoStartMessage] = useState(false);
   const [worksheetSessionKey, setWorksheetSessionKey] = useState(0);
+  const [capitalizationQuizSessionKey, setCapitalizationQuizSessionKey] = useState(0);
 
   const audioContextRef = useRef(null);
   const autoStartTimeoutRef = useRef(null);
   const selectedTestSet = getTestSetById(selectedTestSetId);
   const isWorksheetTestSet = selectedTestSet?.mode === 'worksheet';
   const isTwoStageQuizTestSet = selectedTestSet?.mode === 'two-stage-quiz';
+  const isCapitalizationQuizTestSet = selectedTestSet?.mode === 'capitalization-quiz';
+  const capitalizationInstructionKeys = selectedTestSet?.instructionKeys ?? [];
   const worksheetInstructionKeys = selectedTestSet?.worksheetInstructionKeys ?? [
     'instructions.worksheetCheck',
     'instructions.worksheetRetry'
@@ -149,6 +153,28 @@ export default function App() {
       setCurrentWordUsedHint(false);
       setPositionStatuses([]);
       setIsWordLocked(false);
+      setShowAutoStartMessage(false);
+      return;
+    }
+
+    if (testSetToStart.mode === 'capitalization-quiz') {
+      setGameState('playing');
+      setCapitalizationQuizSessionKey((current) => current + 1);
+      setQueue([]);
+      setCurrentEntry(null);
+      setIsCurrentWordRetry(false);
+      setScoreSequence([]);
+      setTotalScore(0);
+      setMistakesOnPosition(0);
+      setTypedLetters([]);
+      setCurrentPosition(0);
+      setWrongLetters(new Set());
+      setHintedLetter(null);
+      setCurrentWordIsPerfect(true);
+      setCurrentWordUsedHint(false);
+      setPositionStatuses([]);
+      setIsWordLocked(false);
+      setWrongAttemptValue(null);
       setShowAutoStartMessage(false);
       return;
     }
@@ -483,8 +509,12 @@ export default function App() {
             )}
           </div>
           <div className="text-slate-600 dark:text-slate-300 leading-relaxed space-y-3 text-left bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl">
-            <p>{t(isWorksheetTestSet ? 'instructions.worksheetIntro' : 'instructions.typeInstruction')}</p>
-            {isWorksheetTestSet ? (
+            <p>{t(isCapitalizationQuizTestSet ? 'instructions.capitalizationIntro' : isWorksheetTestSet ? 'instructions.worksheetIntro' : 'instructions.typeInstruction')}</p>
+            {isCapitalizationQuizTestSet ? (
+              capitalizationInstructionKeys.map((instructionKey) => (
+                <p key={instructionKey}>{t(instructionKey)}</p>
+              ))
+            ) : isWorksheetTestSet ? (
               <>
                 {worksheetInstructionKeys.map((instructionKey) => (
                   <p key={instructionKey}>{t(instructionKey)}</p>
@@ -508,6 +538,17 @@ export default function App() {
     return (
       <GermanPossessiveQuiz
         key={`${selectedTestSetId}-${worksheetSessionKey}`}
+        testSet={selectedTestSet}
+        onHome={goHome}
+        onRestart={() => startGame(selectedTestSetId)}
+      />
+    );
+  }
+
+  if (gameState === 'playing' && isCapitalizationQuizTestSet && selectedTestSet) {
+    return (
+      <CzechCapitalizationQuiz
+        key={`${selectedTestSetId}-${capitalizationQuizSessionKey}`}
         testSet={selectedTestSet}
         onHome={goHome}
         onRestart={() => startGame(selectedTestSetId)}

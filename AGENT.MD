@@ -80,6 +80,18 @@ Entries have this shape:
 
 `answer` may be a string or an array of accepted answers. The component supports prefix matching, shared-next-letter hints, a submit key between stages, retry scheduling, and the same 3/1/0 scoring model as simple mode.
 
+### Capitalization Quiz Mode
+
+Use `mode: 'capitalization-quiz'`. The current implementation is `CzechCapitalizationQuiz`.
+
+Entries have `{ id, prompt, answer }`. `answer` is always one string; do not use answer arrays. Prompts mix fixed text with case-choice tokens such as `d/Den`: one lowercase letter, a slash, and the word starting with the matching uppercase letter. Czech diacritics are part of the token. Parsing and scoring live in `src/data/czechCapitalizationLogic.js`.
+
+The quiz is touch-only. It must not render a text input or `CanvasKeyboard`. One choice is shown at a time as two large tap cards with the actual lowercase and uppercase letter. A tap records that choice and moves on, even if it is wrong. The phrase renders progressively: decided letters stay as chosen, the current letter is highlighted, later choices stay lowercase, and fixed text is unchanged.
+
+At the end of a phrase, show the learner's phrase and the correct phrase, highlight exactly the wrong decided letters, and wait for Continue. The initial queue is Fisher-Yates shuffled and each item is `{ entry, isRetry }`. Any mistake reinserts the phrase as `isRetry: true`, with a minimum delay of 2 and a random position after that; if fewer than 2 items remain, it is appended. This matches `EnglishIrregularSelectedQuiz.goToNextVerb`.
+
+Scoring is by mistake count, not by hints. Zero mistakes give a yellow star and 3 points on the first attempt. Exactly one mistake gives a gray dot and 1 point. More than one mistake gives a red dot and 0 points. Retries never add points, but they still record the badge. The header shows the remaining queue count, points, and badge sequence with the existing gameplay translation keys. The finished screen shows points, badges, phrases that had mistakes, play again, and home.
+
 ## Keyboard Behavior
 
 `CanvasKeyboard.jsx` is central to both pointer and physical keyboard input.

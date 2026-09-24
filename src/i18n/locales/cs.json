@@ -19,7 +19,12 @@
     "worksheetCheck": "✅ Vyplň celou sekci a potom ji zkontroluj jedním tlačítkem.",
     "worksheetEnding": "🔤 U úloh „Ergänze -e“ vybíráš, jestli se doplní „e“, nebo nic.",
     "worksheetTranslate": "✍️ V překladových úlohách doplňuješ celý výraz přesně podle zadání.",
-    "worksheetRetry": "🔁 Chybné odpovědi se zvýrazní a můžeš je hned opravit."
+    "worksheetRetry": "🔁 Chybné odpovědi se zvýrazní a můžeš je hned opravit.",
+    "capitalizationIntro": "👆 U každého zvýrazněného písmene klepni na správnou velikost.",
+    "capitalizationTap": "🅰️ Dvě velké karty ukazují malé a velké písmeno. Nic se nepíše.",
+    "capitalizationOneChoice": "1️⃣ V jednu chvíli se rozhoduje jen jedno písmeno. Po klepnutí přijde další.",
+    "capitalizationReview": "🔎 Na konci fráze uvidíš svoji podobu i správnou. Špatná písmena jsou zvýrazněná.",
+    "capitalizationRetry": "🔁 Fráze s chybou se později vrátí. Opakování už nepřidává body."
   },
   "gameplay": {
     "typePromptPast": "Napiš minulý tvar slovesa:",
@@ -68,6 +73,10 @@
     "germanPossessiveTranslation1": {
       "title": "Němčina – překládej rychle",
       "description": "Přeložte přivlastňovací zájmeno oběma směry: česky ↔ německy"
+    },
+    "czechCapitalization1": {
+      "title": "Čeština – velká a malá písmena",
+      "description": "Klepni na správnou velikost písmen ve 30 frázích"
     }
   },
   "symbols": {
@@ -85,6 +94,16 @@
     "skipButton": "Přeskočit slovo",
     "errorWordsTitle": "Slova s chybou",
     "noErrorWords": "V tomhle kole nebyla žádná chyba."
+  },
+  "capitalization": {
+    "choiceProgress": "Písmeno {{current}} z {{total}}",
+    "reviewLabel": "Kontrola fráze",
+    "yourPhrase": "Tvoje fráze",
+    "correctPhrase": "Správná fráze",
+    "continueButton": "Pokračovat",
+    "mistakePhrasesTitle": "Fráze s chybou",
+    "noMistakePhrases": "V tomhle kole nebyla žádná chyba.",
+    "finishedMessage": "Všechna písmena jsou rozhodnutá. Skvělá práce."
   },
   "worksheet": {
     "progressLabel": "Pracovní list",

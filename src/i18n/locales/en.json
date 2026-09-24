@@ -19,7 +19,12 @@
     "worksheetCheck": "✅ Fill in a whole section and then check it with one button.",
     "worksheetEnding": "🔤 In “Ergänze -e” tasks you choose whether to add “e” or nothing.",
     "worksheetTranslate": "✍️ In translation tasks you enter the full phrase exactly as required.",
-    "worksheetRetry": "🔁 Wrong answers are highlighted so you can fix them right away."
+    "worksheetRetry": "🔁 Wrong answers are highlighted so you can fix them right away.",
+    "capitalizationIntro": "👆 Tap the correct case for each highlighted letter.",
+    "capitalizationTap": "🅰️ Two large cards show the lowercase and uppercase letter. Nothing is typed.",
+    "capitalizationOneChoice": "1️⃣ Only one letter is decided at a time. The next choice appears after either tap.",
+    "capitalizationReview": "🔎 At the end of the phrase you see your version and the correct one. Wrong letters are highlighted.",
+    "capitalizationRetry": "🔁 A phrase with a mistake comes back later. Retries do not add points."
   },
   "gameplay": {
     "typePromptPast": "Type the past form of:",
@@ -68,6 +73,10 @@
     "germanPossessiveTranslation1": {
       "title": "German – Translate Quickly",
       "description": "Translate the possessive pronoun both ways: Czech ↔ German"
+    },
+    "czechCapitalization1": {
+      "title": "Czech – Capitalization",
+      "description": "Tap the correct letter case in 30 phrases"
     }
   },
   "symbols": {
@@ -85,6 +94,16 @@
     "skipButton": "Skip word",
     "errorWordsTitle": "Words with errors",
     "noErrorWords": "No errors this round."
+  },
+  "capitalization": {
+    "choiceProgress": "Letter {{current}} of {{total}}",
+    "reviewLabel": "Phrase review",
+    "yourPhrase": "Your phrase",
+    "correctPhrase": "Correct phrase",
+    "continueButton": "Continue",
+    "mistakePhrasesTitle": "Phrases with mistakes",
+    "noMistakePhrases": "No mistakes this round.",
+    "finishedMessage": "Every letter has been decided. Nice work."
   },
   "worksheet": {
     "progressLabel": "Worksheet",
